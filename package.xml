@@ -36,6 +36,7 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>roslib</build_depend>
   <build_depend>auto_bridge</build_depend>
+  <build_depend>auto_messages</build_depend>
 
   <!-- Use exec_depend for packages you need at runtime: -->
   <exec_depend>message_runtime</exec_depend>
@@ -43,6 +44,7 @@
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>auto_bridge</exec_depend>
+  <exec_depend>auto_messages</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

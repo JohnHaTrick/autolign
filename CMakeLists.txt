@@ -9,7 +9,8 @@ find_package(catkin REQUIRED
   roslib
   std_msgs
   message_generation
-  auto_bridge
+  #auto_bridge
+  auto_messages
   )
 
 ################################################
@@ -26,7 +27,8 @@ add_message_files(
 generate_messages(
     DEPENDENCIES
     std_msgs
-    auto_bridge
+    #auto_bridge
+    auto_messages
 )
 
 ###################################
@@ -35,5 +37,5 @@ generate_messages(
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
 catkin_package(
-    CATKIN_DEPENDS std_msgs message_runtime auto_bridge
+    CATKIN_DEPENDS std_msgs message_runtime auto_messages #auto_bridge
 )
