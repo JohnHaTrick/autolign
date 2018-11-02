@@ -17,19 +17,19 @@ find_package(catkin REQUIRED
 ## Declare ROS messages, services and actions ##
 ################################################
 ## Generate messages in the 'msg' folder
-add_message_files(
-    FILES
+#add_message_files(
+#    FILES
 #    std_msgs
 #    auto_bridge
-)
+#)
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-    DEPENDENCIES
-    std_msgs
-    #auto_bridge
-    auto_messages
-)
+#generate_messages(
+#    DEPENDENCIES
+#    std_msgs
+#    #auto_bridge
+#    auto_messages
+#)
 
 ###################################
 ## catkin specific configuration ##

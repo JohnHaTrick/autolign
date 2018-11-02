@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
+import os
 import rospy
-#from auto_bridge.msg import from_autobox
+import rosbag
 from auto_messages.msg import from_autobox
 from auto_messages.msg import to_autobox
-
-# This script listens to from_autobox auto_bridge msgs,
-#   prompts an autolign calculation,
-#   then sends a to_autobox msg
 
 def talker(data):
     # publish to auto_bridge's 'to_autobox' topic
@@ -35,6 +32,11 @@ def listener():
     # loop
     rospy.spin()
 
-if __name__ == '__main__':
-    print "Starting node autolign"
-    listener()
+'''
+def bagger(topic,data):
+    # try recoring stuff
+    bag = rosbag.Bag('bagfiles/test.bag','a')
+    bag.write(topic,data)
+    bag.close()
+    print "from_autobox bagged"
+'''  
