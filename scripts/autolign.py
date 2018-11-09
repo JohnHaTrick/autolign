@@ -2,10 +2,13 @@
 
 import sys
 import numpy as np
-import ros_autolign
 import ctrl_autolign
 import sim_autolign
 import learn_autolign
+try: 
+    import ros_autolign
+except:
+    print "\nROS not available. Simulation only."
 
 # Two modes: exp and sim
 #   exp: listens to from_autobox, calc autolign, then sends to_autobox
