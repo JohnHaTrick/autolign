@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 
 import sys
-import numpy as np
-import ctrl_autolign
-import sim_autolign
-import learn_autolign
+import math
+import numpy          as np
+import ctrl_autolign  as ctrl
+import sim_autolign   as sim
+import learn_autolign as learn
 try: 
     import ros_autolign
 except:
     print "\nROS not available. Simulation only."
 
-# Two modes: exp and sim
-#   exp: listens to from_autobox, calc autolign, then sends to_autobox
-#   sim ...
+# High-level script for the automatic alignment of X1's wheels
+#   README to get started
 
 def simLoop():
-    # calc cmds
-    print ctrl_autolign.lookAheadControl()
-    # apply misalignment guess
-    # simulate
-    print sim_autolign.simulateX1()
-    # calc RL
-    print learn_autolign.gradientDescent() + '\n'
+    del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
+    del_cmd += guess				# apply misalignment guess
+    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+    print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
+    print sim.simulateX1()			# simulate
+    print learn.gradientDescent() + '\n'	# calc RL
     return -1
 
 def expLoop():
@@ -32,11 +31,10 @@ def expLoop():
     # calc RL
     return -1
 
-if __name__ == '__main__':
-    # welcome. Select mode from usr input: 'sim' or 'exp'
-    print "\nStarting %s" % sys.argv[0][-11:-3]
-    try:
-        mode = sys.argv[1]
+if __name__ == '__main__':			# main function
+    print "\nStarting %s" % sys.argv[0][-11:-3]	# Welcome
+    try:                                        # Did user enter a terminal argument?
+        mode = sys.argv[1]			# choose simulate or experiment mode
         if mode == 'sim' or mode == 'exp':
             print "in %s mode\n" % sys.argv[1]
         else:
@@ -47,28 +45,29 @@ if __name__ == '__main__':
         mode = 'sim'
 
     # some global parameters and initializations
-    dt        = .1              # 100 msec per trial
-    T         = 1               # 10 sec experiment / simulation
-    N         = int(T/dt)       # number of trials
-    guess_rad = [[np.nan for x in range(4)] for y in range(N)] # misalignment guesses
+    dt    = .1					# 100 msec per trial
+    T     =  1					# 10 sec experiment / simulation
+    N     = int(T/dt)				# number of trials
+    guess = [[np.nan for x in range(4)] \
+		         for y in range(N)]	# initialize misalignment guesses
+    guess[0][:] = [0,0,0,0]			#   to zero [FL, FR, RL, RR]
+    path  = ctrl.loadPath_VAIL()		# get path
 
     if mode == 'exp':
-        # init misalignment guess
-        guess_rad[0][:] = [0,0,0,0]
-        print guess_rad
-        # init path
-        # collect intial state
-        ros_autolign.listener()
-        # run experiment loop
+        ros_autolign.listener()			# collect intial state
         while(1):
-            expLoop()
+            expLoop()				# run experiment loop
 
     elif mode == 'sim':
-        # init true misalignment
-        # init misalignment guess
-        guess_rad[0][:] = [0,0,0,0]
-        # init path
-        # init state
-        # run simulation loop
+        misalign = np.random.uniform(-1,1,4) \
+                 * math.pi/180			# [rad] init true misalignment
+	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians'
+        state = {'E'  : path['E']-.1, # error
+		 'N'  : path['N']-.1, # error
+		 'psi': path['psi'] ,
+                 'Ux' : path['v']-.1, # error
+                 'Uy' : 0	    ,
+		 'r'  : 0
+		}				# initialize state
         while(1):
-            simLoop()
+            simLoop()				# run simulation loop
