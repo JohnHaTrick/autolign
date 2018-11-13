@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-#import math
 import numpy as np
 
 def lookAheadCtrl(path,state):
@@ -19,12 +18,15 @@ def lookAheadCtrl(path,state):
 def PI_Ctrl(path,state):
     v_error = path['v'] - state['Ux']		# [m/s]   speed error, assume Ux >> Uy
     k_p     = 100				# [N/mps] proportional gain
-    Fxr_p   = k_p * v_error			# [N]
     k_i     = 10				# [N/mps] integral gain
-    i	    = v_error # += v_error		# integrate (how to ref? aux[]?)
-    Fxr_i   = k_i * i				# [N]
-    return Fxr_p + Fxr_i			# [N]      cruise control throttle cmd
-    
+    try:    Integrator.i
+    except: Integrator()			# instantiate integraor
+    Integrator.i += v_error			# integrate
+    return k_p * v_error + k_i * Integrator.i	# [N] cruise control throttle cmd
+
+class Integrator(object):
+    i = 0
+
 # return path information
 def loadPath_VAIL():
     path = {'name' : 'VAIL'   ,

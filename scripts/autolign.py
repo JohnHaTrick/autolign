@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import time
 import math
 import numpy          as np
 import ctrl_autolign  as ctrl
@@ -21,6 +22,7 @@ def simLoop():
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
     print sim.simulateX1()			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
+    time.sleep(.1)
     return -1
 
 def expLoop():
@@ -49,19 +51,19 @@ if __name__ == '__main__':			# main function
     T     =  1					# 10 sec experiment / simulation
     N     = int(T/dt)				# number of trials
     guess = [[np.nan for x in range(4)] \
-		         for y in range(N)]	# initialize misalignment guesses
+	             for y in range(N)]		# initialize misalignment guesses
     guess[0][:] = [0,0,0,0]			#   to zero [FL, FR, RL, RR]
     path  = ctrl.loadPath_VAIL()		# get path
 
     if mode == 'exp':
-        ros_autolign.listener()			# collect intial state
+        ros_autolign.listener()			# collect initial state
         while(1):
             expLoop()				# run experiment loop
 
     elif mode == 'sim':
         misalign = np.random.uniform(-1,1,4) \
                  * math.pi/180			# [rad] init true misalignment
-	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians'
+	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
         state = {'E'  : path['E']-.1, # error
 		 'N'  : path['N']-.1, # error
 		 'psi': path['psi'] ,
