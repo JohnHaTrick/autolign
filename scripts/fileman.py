@@ -6,8 +6,8 @@ import datetime
 import time
 
 rows=[]	#List of: Dictionaries containing North, East...
-fieldnames = ['E', 'N', 'psi', 'Ux', 'Uy', 'r']	#List of Dictionaries keys
-#fieldnames = ["E", "N", "Uy, "r"]	#List of Dictionaries keys
+#fieldnames = ['E', 'N', 'psi', 'Ux', 'Uy', 'r']	#List of Dictionaries keys
+fieldnames = ["E", "N", "Uy, "r"]	#List of Dictionaries keys
 
 
 def initializer():      #creates filename based on exact date of execution
