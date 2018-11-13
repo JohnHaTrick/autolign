@@ -14,9 +14,6 @@ except:
 
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
-def simInit(state):
-    sim.setState(state)
-    return -1
 
 def simLoop():
     state = sim.getState()
