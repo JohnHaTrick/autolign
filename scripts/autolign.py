@@ -4,7 +4,8 @@ import sys
 import math
 import numpy          as np
 import ctrl_autolign  as ctrl
-import sim_autolign   as sim
+#import sim_autolign   as sim
+from sim_autolign import X1Simulator
 import learn_autolign as learn
 try: 
     import ros_autolign
@@ -13,13 +14,17 @@ except:
 
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
+def simInit(state):
+    sim.setState(state)
+    return -1
 
 def simLoop():
+    state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
     del_cmd += guess				# apply misalignment guess
     Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    print sim.simulateX1()			# simulate
+    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
     return -1
 
@@ -61,7 +66,7 @@ if __name__ == '__main__':			# main function
     elif mode == 'sim':
         misalign = np.random.uniform(-1,1,4) \
                  * math.pi/180			# [rad] init true misalignment
-	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians'
+        print "X1's simulated initial misalignment is: " + str(misalign) + ' radians'
         state = {'E'  : path['E']-.1, # error
 		 'N'  : path['N']-.1, # error
 		 'psi': path['psi'] ,
@@ -69,5 +74,9 @@ if __name__ == '__main__':			# main function
                  'Uy' : 0	    ,
 		 'r'  : 0
 		}				# initialize state
+
+        sim = X1Simulator() # initialize sim
+        sim.setState(state) # initialize sim state
+        
         while(1):
             simLoop()				# run simulation loop
