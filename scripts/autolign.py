@@ -8,6 +8,8 @@ import ctrl_autolign  as ctrl
 #import sim_autolign   as sim
 from sim_autolign import X1Simulator
 import learn_autolign as learn
+import matplotlib.pyplot as plt
+
 try: 
     import ros_autolign
 except:
@@ -22,10 +24,11 @@ def simLoop():
     del_cmd += guess				# apply misalignment guess
     Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
+    state = sim.simulateX1(del_cmd[0:4], 1000*Fxr)			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
+    #print "E:",state['E']," N:",state['N']," Psi:",state['psi']," Ux:",state['Ux']," Uy:",state['Uy']," r:",state['r']
     time.sleep(.01)
-    return -1
+    return state
 
 def expLoop():
     # calc cmds
@@ -78,5 +81,19 @@ if __name__ == '__main__':			# main function
         sim = X1Simulator() # initialize sim
         sim.setState(state) # initialize sim state
         #while(1):
+        E = []
+        N = []
+        UX = []
         for i in range(1000):
-            simLoop()				# run simulation loop
+            state = simLoop()				# run simulation loop
+            E = np.r_[E, state['E']]
+            N = np.r_[N, state['N']]
+            UX = np.r_[UX,state['Ux']]
+
+        plt.subplot(211)
+        plt.plot(E,N)
+        plt.axis('equal')
+        plt.subplot(212)
+        plt.plot(UX)
+        plt.tight_layout()
+        plt.show()

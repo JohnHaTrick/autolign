@@ -122,11 +122,12 @@ class X1Simulator:
 
     def getState(self):
         # return state
-        state= {'E'    :  self.east,			# [m]   init pos East. Durand Datum
-                'N'    :  self.north,			# [m]   init pos North
-                'psi'  :  self.psi,			# [rad] init heading
-                'Ux'   :  self.vx,			# [1/m] curvature
-                'Uy'   :  self.vy,			# [m/s] desired speed
+        state= {'E'    :  self.east,			# [m]   pos East. Durand Datum
+                'N'    :  self.north,			# [m]   pos North
+                'psi'  :  self.psi,			# [rad] heading
+                'Ux'   :  self.vx,			# [m/s] longitudinal speed
+                'Uy'   :  self.vy,			# [m/s] lateral speed
+                'r'    :  self.r,           # [rad/s] yawrate
            }
         return state
         
@@ -139,10 +140,11 @@ class X1Simulator:
         self.simulate()
         
         # return state
-        state= {'E'    :  self.east_n,			# [m]   init pos East. Durand Datum
-                'N'    :  self.north_n,			# [m]   init pos North
-                'psi'  :  self.psi_n,			# [rad] init heading
-                'Ux'   :  self.vx_n,			# [1/m] curvature
-                'Uy'   :  self.vy_n,			# [m/s] desired speed
+        state= {'E'    :  self.east_n,			# [m]   pos East. Durand Datum
+                'N'    :  self.north_n,			# [m]   pos North
+                'psi'  :  self.psi_n,			# [rad] heading
+                'Ux'   :  self.vx_n,			# [m/s] longitudinal speed
+                'Uy'   :  self.vy_n,			# [m/s] lateral speed
+                'r'    :  self.r,               # [rad/s] yawrate
            }
         return state
