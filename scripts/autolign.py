@@ -5,7 +5,8 @@ import time
 import math
 import numpy          as np
 import ctrl_autolign  as ctrl
-import sim_autolign   as sim
+#import sim_autolign   as sim
+from sim_autolign import X1Simulator
 import learn_autolign as learn
 try: 
     import ros_autolign
@@ -16,13 +17,14 @@ except:
 #   README to get started
 
 def simLoop():
+    state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
     del_cmd += guess				# apply misalignment guess
     Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    print sim.simulateX1()			# simulate
+    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
-    time.sleep(.1)
+    time.sleep(.01)
     return -1
 
 def expLoop():
@@ -71,5 +73,10 @@ if __name__ == '__main__':			# main function
                  'Uy' : 0	    ,
 		 'r'  : 0
 		}				# initialize state
-        while(1):
+        
+
+        sim = X1Simulator() # initialize sim
+        sim.setState(state) # initialize sim state
+        #while(1):
+        for i in range(1000):
             simLoop()				# run simulation loop
