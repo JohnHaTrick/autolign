@@ -21,7 +21,9 @@ def simLoop():
     Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
     print sim.simulateX1()			# simulate
-    print learn.gradientDescent() + '\n'	# calc RL
+    #guess    = learn.gradDescent(guess,del_cmd,
+    #                             state,dt)	# calc RL
+    print "Learning: send state_1, del_cmd; get new misalignment guess\n"
     time.sleep(.1)
     return -1
 
@@ -53,9 +55,10 @@ if __name__ == '__main__':			# main function
     dt    = .1					#   100 msec per trial
     T     =  1					#   10 sec experiment / simulation
     N     = int(T/dt)				#   number of trials
-    guess = [[np.nan for x in range(4)] \
-	             for y in range(N)]		#   init misalignment guesses
-    guess[0][:] = [0,0,0,0]			#     to zero [FL, FR, RL, RR]
+    #guess = [[np.nan for x in range(4)] \
+    #	             for y in range(N)]		#   init misalignment guesses
+    #guess[0][:] = [0,0,0,0]			#     to zero [FL, FR, RL, RR]
+    guess = np.array([0,0,0,0])			#     to zero [FL, FR, RL, RR]
     path  = ctrl.loadPath_VAIL()		#   get path
 
     if mode == 'exp':				# Mode == exp
