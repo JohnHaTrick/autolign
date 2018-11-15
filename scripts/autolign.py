@@ -33,36 +33,39 @@ def expLoop():
     # calc RL
     return -1
 
-if __name__ == '__main__':			# main function
-    print "\nStarting %s" % sys.argv[0][-11:-3]	# Welcome
+def welcome(args):
+    print "\nStarting %s" % args[0][-11:-3]	# Welcome message
     try:                                        # Did user enter a terminal argument?
-        mode = sys.argv[1]			# choose simulate or experiment mode
+        mode = args[1]				# choose simulate or experiment mode
         if mode == 'sim' or mode == 'exp':
-            print "in %s mode\n" % sys.argv[1]
+            print "in %s mode\n" % args[1]
         else:
             print "in sim mode (by default)\n"
             mode = 'sim'
     except:
         print "in sim mode (by default)\n"
         mode = 'sim'
-
-    # some global parameters and initializations
-    dt    = .1					# 100 msec per trial
-    T     =  1					# 10 sec experiment / simulation
-    N     = int(T/dt)				# number of trials
+    return mode
+    
+if __name__ == '__main__':			# main function
+						# Parameters and initializations:
+    mode  = welcome(sys.argv)			#   choose simulation or experiment
+    dt    = .1					#   100 msec per trial
+    T     =  1					#   10 sec experiment / simulation
+    N     = int(T/dt)				#   number of trials
     guess = [[np.nan for x in range(4)] \
-	             for y in range(N)]		# initialize misalignment guesses
-    guess[0][:] = [0,0,0,0]			#   to zero [FL, FR, RL, RR]
-    path  = ctrl.loadPath_VAIL()		# get path
+	             for y in range(N)]		#   init misalignment guesses
+    guess[0][:] = [0,0,0,0]			#     to zero [FL, FR, RL, RR]
+    path  = ctrl.loadPath_VAIL()		#   get path
 
-    if mode == 'exp':
-        ros_autolign.listener()			# collect initial state
+    if mode == 'exp':				# Mode == exp
+        ros_autolign.listener()			#   collect initial state
         while(1):
-            expLoop()				# run experiment loop
+            expLoop()				#   run experiment loop
 
-    elif mode == 'sim':
+    elif mode == 'sim':				# Mode == sim
         misalign = np.random.uniform(-1,1,4) \
-                 * math.pi/180			# [rad] init true misalignment
+                 * math.pi/180			#   [rad] init true misalignment
 	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
         state = {'E'  : path['E']-.1, # error
 		 'N'  : path['N']-.1, # error
@@ -70,6 +73,6 @@ if __name__ == '__main__':			# main function
                  'Ux' : path['v']-.1, # error
                  'Uy' : 0	    ,
 		 'r'  : 0
-		}				# initialize state
+		}				#   initialize state
         while(1):
-            simLoop()				# run simulation loop
+            simLoop()				#   run simulation loop
