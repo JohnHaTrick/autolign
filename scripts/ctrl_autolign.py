@@ -6,12 +6,12 @@ def lookAheadCtrl(path,state):
     # Kapania & Gerdes. Autonomous Lanekeeping Sys for Path Tracking. AVEC. 2014
     x_LA    =  20				# [m]     look ahead dist
     k_p	    =  1				# [rad/m] proportional gain
+    dPsi    =  state['psi'] - path['psi']       # [rad]   heading error
     e       =  calcLateralError(path,state)	# [m]     current lateral error
-    e_LA    =  e + x_LA * ( path['psi']  \
-                          - state['psi'] )	# [m]     look ahead lateral error
+    e_LA    =  e + x_LA * dPsi			# [m]     look ahead lateral error
     del_FB  = -k_p * e_LA			# [rad]   steer FB (no sideslip)
     del_FFW =  4*path['k'] - 0 + 0		# [rad]   steer FFW (not implemented)
-    del_f   =  del_FFW + del_FB                 # Ackerman correction?
+    del_f   =  del_FFW + del_FB                 # Ackerman correction needed?
     del_r   =  0
     return [del_f, del_f, del_r, del_r]		# [FL, FR, RL, RR]
 
@@ -32,7 +32,7 @@ def loadPath_VAIL():
     path = {'name' : 'VAIL'   ,
             'E'    :   22.1068,			# [m]   init pos East. Durand Datum
             'N'    :  -10.7145,			# [m]   init pos North
-            'psi'  :    1.520 ,			# [rad] init heading
+            'psi'  :    1.520 ,			# [rad] init heading, ccw from N
             'k'    :    0     ,			# [1/m] curvature
             'v'    :    3     ,			# [m/s] desired speed
 	   }
@@ -42,7 +42,7 @@ def loadPath_Fremont():
     path = {'name' : 'Fremont',
             'E'    :   53.3943,			# [m]   init pos East. Durand Datum
             'N'    : -155.6835,			# [m]   init pos North
-            'psi'  :    2.6726,			# [rad] init heading
+            'psi'  :    2.6726,			# [rad] init heading, ccw from N
             'k'    :    0     ,		    	# [1/m] curvature
             'v'    :    5     ,			# [m/s] desired speed
 	   }
