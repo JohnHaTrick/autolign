@@ -5,8 +5,11 @@ import time
 import math
 import numpy          as np
 import ctrl_autolign  as ctrl
-import sim_autolign   as sim
+#import sim_autolign   as sim
+from sim_autolign import X1Simulator
 import learn_autolign as learn
+import matplotlib.pyplot as plt
+
 try: 
     import ros_autolign
 except:
@@ -16,16 +19,17 @@ except:
 #   README to get started
 
 def simLoop():
+    state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
-    del_cmd += guess				# apply misalignment guess
-    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+    del_cmd += misalign#guess				# apply misalignment guess
+    Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    print sim.simulateX1()			# simulate
+    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
     #guess    = learn.gradDescent(guess,del_cmd,
     #                             state,dt)	# calc RL
     print "Learning: send state_1, del_cmd; get new misalignment guess\n"
-    time.sleep(.1)
-    return -1
+    time.sleep(.01)
+    return state
 
 def expLoop():
     # calc cmds
@@ -66,16 +70,34 @@ if __name__ == '__main__':			# main function
         while(1):
             expLoop()				#   run experiment loop
 
-    elif mode == 'sim':				# Mode == sim
-        misalign = np.random.uniform(-1,1,4) \
-                 * math.pi/180			#   [rad] init true misalignment
+    elif mode == 'sim':
+        misalign = 5*np.random.uniform(-1,1,4) \
+                 * math.pi/180			# [rad] init true misalignment
 	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
-        state = {'E'  : path['E']-.1, # error
-		 'N'  : path['N']-.1, # error
+        state = {'E'  : path['E']-.5, # error
+		 'N'  : path['N']-.5, # error
 		 'psi': path['psi'] ,
-                 'Ux' : path['v']-.1, # error
+                 'Ux' : path['v']-.5, # error
                  'Uy' : 0	    ,
 		 'r'  : 0
-		}				#   initialize state
-        while(1):
-            simLoop()				#   run simulation loop
+		}				# initialize state
+        
+        sim = X1Simulator() # initialize sim
+        sim.setState(state) # initialize sim state
+        #while(1):
+        E = []
+        N = []
+        UX = []
+        for i in range(1000):
+            state = simLoop()				# run simulation loop
+            E = np.r_[E, state['E']]
+            N = np.r_[N, state['N']]
+            UX = np.r_[UX,state['Ux']]
+
+        plt.subplot(211)
+        plt.plot(E,N)
+        plt.axis('equal')
+        plt.subplot(212)
+        plt.plot(UX)
+        plt.tight_layout()
+        plt.show()
