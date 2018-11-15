@@ -21,10 +21,10 @@ except:
 def simLoop():
     state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
-    del_cmd += guess				# apply misalignment guess
-    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+    del_cmd += misalign#guess				# apply misalignment guess
+    Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    state = sim.simulateX1(del_cmd[0:4], 1000*Fxr)			# simulate
+    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
     #print "E:",state['E']," N:",state['N']," Psi:",state['psi']," Ux:",state['Ux']," Uy:",state['Uy']," r:",state['r']
     time.sleep(.01)
@@ -66,13 +66,13 @@ if __name__ == '__main__':			# main function
             expLoop()				# run experiment loop
 
     elif mode == 'sim':
-        misalign = np.random.uniform(-1,1,4) \
+        misalign = 5*np.random.uniform(-1,1,4) \
                  * math.pi/180			# [rad] init true misalignment
 	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
-        state = {'E'  : path['E']-.1, # error
-		 'N'  : path['N']-.1, # error
+        state = {'E'  : path['E']-.5, # error
+		 'N'  : path['N']-.5, # error
 		 'psi': path['psi'] ,
-                 'Ux' : path['v']-.1, # error
+                 'Ux' : path['v']-.5, # error
                  'Uy' : 0	    ,
 		 'r'  : 0
 		}				# initialize state

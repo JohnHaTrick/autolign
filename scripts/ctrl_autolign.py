@@ -7,7 +7,7 @@ def lookAheadCtrl(path,state):
     x_LA    =  20				# [m]     look ahead dist
     k_p	    =  1				# [rad/m] proportional gain
     e       =  calcLateralError(path,state)	# [m]     current lateral error
-    e_LA    =  e + x_LA * ( path['psi']  \
+    e_LA    =  e - x_LA * ( path['psi']  \
                           - state['psi'] )	# [m]     look ahead lateral error
     del_FB  = -k_p * e_LA			# [rad]   steer FB (no sideslip)
     del_FFW =  4*path['k'] - 0 + 0		# [rad]   steer FFW (not implemented)
