@@ -25,21 +25,22 @@ def initializer():      #creates filename based on exact date of execution
 
 def write_row_csv(file, paket):  #writes a CSV file. Params: filename, array/list/tuple... of values
 	with open(file, 'a') as data:
-		filewriter = csv.DictWriter(data, fieldnames=fieldnames, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+		filewriter = csv.DictWriter(data, fieldnames=paket.keys(), delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 		filewriter.writerow(paket)
+		#print(paket.keys())
 
 # def write_row_csv2(a, data):  #writes a CSV file. Params: filename, array/list/tuple of values //Ignore (testing)
 # 	filewriter = csv.writer(data, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 # 	filewriter.writerow(a)
 
-def append_rows_csv(paket):    #builds a list for future CSV writing. Params: array/list/tuple... of values
-	rows.append(paket)
+# def append_rows_csv(paket):    #builds a list for future CSV writing. Params: array/list/tuple... of values
+# 	rows.append(paket)
 
-def write_full_csv(file):  #writes a CSV file. Params: filename, array/list/tuple of values
-	with open(file, 'a') as data:
-		filewriter = csv.DictWriter(data, fieldnames=fieldnames, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-		for paket in rows:
-			filewriter.writerow(paket)
+# def write_full_csv(file):  #writes a CSV file. Params: filename, array/list/tuple of values
+# 	with open(file, 'a') as data:
+# 		filewriter = csv.DictWriter(data, fieldnames=fieldnames, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+# 		for paket in rows:
+# 			filewriter.writerow(paket)
 
 
 def read_csv(file):      #reads a CSV file. Params: filename, array/list/tuple of values
