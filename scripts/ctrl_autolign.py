@@ -6,7 +6,7 @@ def lookAheadCtrl(path,state):
     # Kapania & Gerdes. Autonomous Lanekeeping Sys for Path Tracking. AVEC. 2014
     x_LA    =  20				# [m]     look ahead dist
     k_p	    =  1				# [rad/m] proportional gain
-    dPsi    =  state['psi'] - path['psi']       # [rad]   heading error
+    dPsi    =  calcHeadingError(path,state)     # [rad]   heading error
     e       =  calcLateralError(path,state)	# [m]     current lateral error
     e_LA    =  e + x_LA * dPsi			# [m]     look ahead lateral error
     del_FB  = -k_p * e_LA			# [rad]   steer FB (no sideslip)
@@ -60,3 +60,6 @@ def calcLateralError(path,state):
     e_vec = d_vec - s_vec			# from closest pt to current position
     e     = np.dot(e_hat,e_vec)			#    lateral error
     return e
+
+def calcHeadingError(path,state):
+    return state['psi'] - path['psi']

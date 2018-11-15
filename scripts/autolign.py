@@ -18,16 +18,17 @@ except:
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
 
-def simLoop():
-    state = sim.getState()
-    del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
-    del_cmd += misalign#guess				# apply misalignment guess
+def simLoop(guess):
+    state    = sim.getState()				# current state
+    del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
+    del_cmd += misalign - guess				# apply misalignment and guess
     Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
-    print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
-    state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
-    #guess    = learn.gradDescent(guess,del_cmd,
-    #                             state,dt)	# calc RL
-    print "Learning: send state_1, del_cmd; get new misalignment guess\n"
+    print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
+    state    = sim.simulateX1(del_cmd[0:4], Fxr)	# simulate cmds
+    guess    = learn.gradDescent(guess, del_cmd,
+                                 state, dt, path)	# calc RL
+    print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
+	+ "Guess:         [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
     time.sleep(.01)
     return state
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':			# main function
         N = []
         UX = []
         for i in range(1000):
-            state = simLoop()				# run simulation loop
+            state = simLoop(guess)		# run simulation loop
             E = np.r_[E, state['E']]
             N = np.r_[N, state['N']]
             UX = np.r_[UX,state['Ux']]
