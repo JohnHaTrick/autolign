@@ -4,7 +4,7 @@ import numpy        as     np
 from   sim_autolign import X1Simulator
 import ctrl_autolign as ctrl
 
-def gradDescent(guess,delta,state_1,dt,path):
+def gradDescent(guess,delta,state_1,dt,path,i):
     # minimize cost function (x_1_meas - x_1_model)^2
     #   using linear model with states [ e dPsi Uy r ]
 
@@ -32,7 +32,7 @@ def gradDescent(guess,delta,state_1,dt,path):
     Ux      = state_1['Ux']		    #   speed (assumed const)
 
     I       = np.identity(4)		    # Learning parameters
-    eta     = .01				    #   learning rate
+    eta     = .1 #/np.sqrt(i)		    #   learning rate
     Q       =  (Cr*b   - Cf*a  )/M /Ux
     R	    = -(Cf*a*a + Cr*b*b)/Iz/Ux
     C	    =       Cf + Cr
