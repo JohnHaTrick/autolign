@@ -19,6 +19,7 @@ except:
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
 
+
 def simLoop(filename):
     state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
@@ -26,6 +27,9 @@ def simLoop(filename):
     Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Command %.2f rad steering and %.2f N throttle" % (float(del_cmd[0]),Fxr)
     state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
+
+    fm.write_row_csv(filename,state)
+    
     print learn.gradientDescent() + '\n'	# calc RL
     #print "E:",state['E']," N:",state['N']," Psi:",state['psi']," Ux:",state['Ux']," Uy:",state['Uy']," r:",state['r']
     fm.write_row_csv(filename, state)
