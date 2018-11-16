@@ -21,10 +21,11 @@ except:
 def simLoop(guess):
     state    = sim.getState()				# current state
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    del_cmd += misalign - guess				# apply misalignment and guess
+    del_cmd -= guess					# apply misalignment and guess
     Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
-    state    = sim.simulateX1(del_cmd[0:4], Fxr)	# simulate cmds
+    del_real = del_cmd + misalign
+    state    = sim.simulateX1(del_real, Fxr)	# simulate cmds
     guess    = learn.gradDescent(guess, del_cmd,
                                  state, dt, path)	# calc RL
     print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\

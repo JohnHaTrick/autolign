@@ -28,12 +28,11 @@ def gradDescent(guess,delta,state_1,dt,path):
 		    ctrl.calcHeadingError(path,state_1),
 		    state_1['Uy']                      ,
 		    state_1['r']                       ])
-    #s_0 = np.transpose(s_0)
-    #s_1 = np.transpose(s_1)
+    memory.state_0 = state_1		    #   set state_0 for next iter
     Ux      = state_1['Ux']		    #   speed (assumed const)
 
     I       = np.identity(4)		    # Learning parameters
-    eta     = .001				    #   learning rate
+    eta     = .01				    #   learning rate
     Q       =  (Cr*b   - Cf*a  )/M /Ux
     R	    = -(Cf*a*a + Cr*b*b)/Iz/Ux
     C	    =       Cf + Cr
@@ -55,8 +54,9 @@ def gradDescent(guess,delta,state_1,dt,path):
 		    0,
 		    0
 		  ])			    # affine
-    guess = guess - 2*eta*dt*(s_1 - (I+dt*A).dot(s_0) - dt*(B.dot(delta+guess)+C))*B
-    memory.state_0 = state_1		    # set state_0 for next iteration
+    s_1_model = (I+dt*A).dot(s_0) + dt*(B.dot(delta+guess)+C)
+    
+    guess = guess + 2*eta*dt*(s_1 - s_1_model)*B
     return guess.tolist()[0]
 
 class memory(object):
