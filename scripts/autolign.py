@@ -9,6 +9,7 @@ import ctrl_autolign  as ctrl
 from sim_autolign import X1Simulator
 import learn_autolign as learn
 import matplotlib.pyplot as plt
+import fileman as fm
 
 try: 
     import ros_autolign
@@ -18,7 +19,7 @@ except:
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
 
-def simLoop():
+def simLoop(filename):
     state = sim.getState()
     del_cmd  = ctrl.lookAheadCtrl(path,state)	# calc steer cmds
     del_cmd += misalign#guess				# apply misalignment guess
@@ -27,7 +28,8 @@ def simLoop():
     state = sim.simulateX1(del_cmd[0:4], Fxr)			# simulate
     print learn.gradientDescent() + '\n'	# calc RL
     #print "E:",state['E']," N:",state['N']," Psi:",state['psi']," Ux:",state['Ux']," Uy:",state['Uy']," r:",state['r']
-    time.sleep(.01)
+    fm.write_row_csv(filename, state)
+    #time.sleep(.01)
     return state
 
 def expLoop():
@@ -73,22 +75,23 @@ if __name__ == '__main__':			# main function
                  * math.pi/180			# [rad] init true misalignment
 	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
         state = {'E'  : path['E']-.5, # error
-		 'N'  : path['N']-.5, # error
-		 'psi': path['psi'] ,
-                 'Ux' : path['v']-.5, # error
-                 'Uy' : 0	    ,
-		 'r'  : 0
+        'N'  : path['N']-.5, # error
+        'psi': path['psi'] ,
+        'Ux' : path['v']-.5, # error
+        'Uy' : 0,
+		'r'  : 0
 		}				# initialize state
         
-
         sim = X1Simulator() # initialize sim
         sim.setState(state) # initialize sim state
+        filename = fm.initializer()
+
         #while(1):
         E = []
         N = []
         UX = []
         for i in range(1000):
-            state = simLoop()				# run simulation loop
+            state = simLoop(filename)				# run simulation loop
             E = np.r_[E, state['E']]
             N = np.r_[N, state['N']]
             UX = np.r_[UX,state['Ux']]
