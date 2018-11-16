@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-import time
-import math
-import numpy          as np
-import ctrl_autolign  as ctrl
-#import sim_autolign   as sim
-from sim_autolign import X1Simulator
-import learn_autolign as learn
+import sys, time, math
+import numpy             as np
+import ctrl_autolign     as ctrl
+import learn_autolign    as learn
 import matplotlib.pyplot as plt
-
+from   sim_autolign  import X1Simulator
 try: 
     import ros_autolign
 except:
@@ -18,16 +14,18 @@ except:
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
 
-def simLoop(guess):
+def simLoop(guess,i):
     state    = sim.getState()				# current state
+    print "E:",round(state['E'],2)," N:",round(state['N'],2)," Psi:",round(state['psi'],2),\
+          " Ux:",round(state['Ux'],2)," Uy:",round(state['Uy'],2)," r:",round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    del_cmd -= guess					# apply misalignment and guess
-    Fxr      = 1000*ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+    #del_cmd -= guess					# apply misalignment and guess
+    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
     print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
     del_real = del_cmd + misalign
-    state    = sim.simulateX1(del_real, Fxr)	# simulate cmds
+    state    = sim.simulateX1(del_real, Fxr, dt)	# simulate cmds
     guess    = learn.gradDescent(guess, del_cmd,
-                                 state, dt, path)	# calc RL
+                                 state, dt, path, i)	# calc RL
     print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
 	+ "Guess:         [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
     time.sleep(.01)
@@ -58,13 +56,11 @@ def welcome(args):
 if __name__ == '__main__':			# main function
 						# Parameters and initializations:
     mode  = welcome(sys.argv)			#   choose simulation or experiment
-    dt    = .1					#   100 msec per trial
-    T     =  1					#   10 sec experiment / simulation
+    dt    = .01					#   100 msec per trial
+    T     =  10					#   10 sec experiment / simulation
     N     = int(T/dt)				#   number of trials
-    #guess = [[np.nan for x in range(4)] \
-    #	             for y in range(N)]		#   init misalignment guesses
-    #guess[0][:] = [0,0,0,0]			#     to zero [FL, FR, RL, RR]
     guess = np.array([0,0,0,0])			#     to zero [FL, FR, RL, RR]
+    #path  = ctrl.loadPath_debug()		#   get path
     path  = ctrl.loadPath_VAIL()		#   get path
 
     if mode == 'exp':				# Mode == exp
@@ -76,22 +72,21 @@ if __name__ == '__main__':			# main function
         misalign = 5*np.random.uniform(-1,1,4) \
                  * math.pi/180			# [rad] init true misalignment
 	print "X1's simulated initial misalignment is: " + str(misalign) + ' radians\n'
-        state = {'E'  : path['E']-.5, # error
-		 'N'  : path['N']-.5, # error
-		 'psi': path['psi'] ,
-                 'Ux' : path['v']-.5, # error
-                 'Uy' : 0	    ,
+        state = {'E'  : path['E']+1, # error
+		 'N'  : path['N']  , # error
+		 'psi': path['psi'],
+                 'Ux' : path['v']  , # error
+                 'Uy' : 0	   ,
 		 'r'  : 0
 		}				# initialize state
         
         sim = X1Simulator() # initialize sim
         sim.setState(state) # initialize sim state
-        #while(1):
         E = []
         N = []
         UX = []
-        for i in range(1000):
-            state = simLoop(guess)		# run simulation loop
+        for i in range(int(T/dt)):
+            state = simLoop(guess,i)		# run simulation loop
             E = np.r_[E, state['E']]
             N = np.r_[N, state['N']]
             UX = np.r_[UX,state['Ux']]
