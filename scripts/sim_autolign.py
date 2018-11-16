@@ -131,13 +131,14 @@ class X1Simulator:
            }
         return state
         
-    def simulateX1(self, del_cmd, Fxr):
+    def simulateX1(self, del_cmd, Fxr, dt):
         # set command to simulator
         self.fx = [0,0,Fxr,Fxr]
         self.delta_4ws = del_cmd
 
         # simulate
-        self.simulate()
+	for i in range(int(dt/self.dt)):
+	    self.simulate()
         
         # return state
         state= {'E'    :  self.east_n,			# [m]   pos East. Durand Datum
