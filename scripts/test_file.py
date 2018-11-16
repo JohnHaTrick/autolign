@@ -17,7 +17,7 @@ state = {'E'  : 1,
         }
 
 
-ordered = ['E', 'N', 'psi', 'Ux', 'Uy', 'r']
+ordered = ['N', 'E', 'psi', 'Ux', 'Uy', 'r']
 #ordered = state.keys()
 
 its=50

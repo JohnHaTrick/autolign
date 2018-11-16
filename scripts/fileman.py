@@ -1,3 +1,14 @@
+#HOW TO USE
+#filename=fm.initializer(_________________)  	ADD THIS LINE IN THE INITIALIZATION
+#                        order=state.keys()  	For tracking dict position
+#                        order=newArr        	For rearranging the dict in the CSV
+#											 	Where newArr is a list containing state.keys() in the desired arrangement order
+#	
+#fm.write_row_csv(filename,state,_________________)   ADD THIS LINE WHENEVER DATA NEEDS TO BE WRITTEN
+#                                order=state.keys()   For tracking dict position
+#                                order=newArr         For rearranging the dict in the CSV
+#											 	      Where newArr is a list containing state.keys() in the desired arrangement order			  
+
 __author__      = "icoen"
 
 import numpy as np
