@@ -9,7 +9,7 @@ from   sim_autolign  import X1Simulator
 try: 
     import ros_autolign
 except:
-    print "\nROS not available. Simulation only."
+    print ("\nROS not available. Simulation only.")
 
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
@@ -40,16 +40,16 @@ def expLoop():
     return -1
 
 def welcome(args):
-    print "\nStarting %s" % args[0][-11:-3]	# Welcome message
+    print ("\nStarting %s" % args[0][-11:-3])   # Welcome message
     try:                                        # Did user enter a terminal argument?
-        mode = args[1]				# choose simulate or experiment mode
+        mode = args[1]              # choose simulate or experiment mode
         if mode == 'sim' or mode == 'exp':
-            print "in %s mode\n" % args[1]
+            print ("in %s mode\n" % args[1])
         else:
-            print "in sim mode (by default)\n"
+            print ("in sim mode (by default)\n")
             mode = 'sim'
     except:
-        print "in sim mode (by default)\n"
+        print ("in sim mode (by default)\n")
         mode = 'sim'
     return mode
     
@@ -58,15 +58,15 @@ if __name__ == '__main__':			# main function
     mode  = welcome(sys.argv)			#   choose simulation or experiment
     dt    = .01					#   100 msec per trial
     T     =  10					#   10 sec experiment / simulation
-    N     = int(T/dt)				#   number of trials
+    n     = int(T/dt)				#   number of trials
     guess = np.array([0,0,0,0])			#     to zero [FL, FR, RL, RR]
     #path  = ctrl.loadPath_debug()		#   get path
     path  = ctrl.loadPath_VAIL()		#   get path
 
-    if mode == 'exp':				# Mode == exp
-        ros_autolign.listener()			#   collect initial state
+    if mode == 'exp':               # Mode == exp
+        ros_autolign.listener()         #   collect initial state
         while(1):
-            expLoop()				#   run experiment loop
+            expLoop()               #   run experiment loop
 
     elif mode == 'sim':
         misalign = 5*np.random.uniform(-1,1,4) \
@@ -85,7 +85,7 @@ if __name__ == '__main__':			# main function
         E = []
         N = []
         UX = []
-        for i in range(int(T/dt)):
+        for i in range(n):
             state = simLoop(guess,i)		# run simulation loop
             E = np.r_[E, state['E']]
             N = np.r_[N, state['N']]
