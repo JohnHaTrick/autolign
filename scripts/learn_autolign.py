@@ -32,7 +32,7 @@ def gradDescent(guess,delta,state_1,dt,path,i):
     Ux      = state_1['Ux']		    #   speed (assumed const)
 
     I       = np.identity(4)		    # Learning parameters
-    eta     = .1 #/np.sqrt(i)		    #   learning rate
+    eta     = 1/np.sqrt(i)		    #   learning rate
     Q       =  (Cr*b   - Cf*a  )/M /Ux
     R	    = -(Cf*a*a + Cr*b*b)/Iz/Ux
     C	    =       Cf + Cr
