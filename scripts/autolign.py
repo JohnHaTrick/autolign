@@ -26,6 +26,10 @@ def simLoop(guess,i):
     state    = sim.simulateX1(del_real, Fxr, dt)	# simulate cmds
     guess    = learn.gradDescent(guess, del_cmd,
                                  state, dt, path, i)	# calc RL
+    # for plot
+    e = ctrl.calcLateralError(path,state)
+    dPsi = ctrl.calcHeadingError(path,state)
+    state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
     print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
 	+ "Guess:         [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
     time.sleep(.01)
@@ -86,6 +90,7 @@ if __name__ == '__main__':			# main function
 
         for i in range(int(T/dt)):
             state = simLoop(guess,i)		# run simulation loop
+            state.update(t=dt*i)
             plotter.store(state)
 
         plotter.plot()      # plot simulation result
