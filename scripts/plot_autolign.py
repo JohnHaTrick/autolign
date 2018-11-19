@@ -61,17 +61,26 @@ class Plotter:
         plt.grid()
 
         plt.subplot(615)
-        plt.plot(self.delta/np.pi*180.0)
+        plt.plot(self.delta[:,0]/np.pi*180.0,label='FrontLeft')
+        plt.plot(self.delta[:,1]/np.pi*180.0, label='FrontRight')
+        plt.plot(self.delta[:,2]/np.pi*180.0, label='RearLeft')
+        plt.plot(self.delta[:,3]/np.pi*180.0, label='RearRight')
         plt.ylabel('Steer Angle [deg]')
-        plt.legend({'FrontLeft','FrontRight','RearLeft','RearRight'})
+        plt.legend()
         plt.grid()
 
-        plt.subplot(616)
-        plt.plot(self.guess/np.pi*180.0)
-        plt.plot(self.misalign/np.pi*180.0)
+        plt.figure()
+        #plt.subplot(616)
+        plt.plot(self.guess[:,0]/np.pi*180.0,label='GuessFL')
+        plt.plot(self.guess[:,1]/np.pi*180.0,label='GuessFR')
+        plt.plot(self.guess[:,2]/np.pi*180.0,label='GuessRL')
+        plt.plot(self.guess[:,3]/np.pi*180.0,label='GuessRR')
+        plt.plot(self.misalign[:,0]/np.pi*180.0,label='MisFL')
+        plt.plot(self.misalign[:,1]/np.pi*180.0,label='MisFR')
+        plt.plot(self.misalign[:,2]/np.pi*180.0,label='MisRL')
+        plt.plot(self.misalign[:,3]/np.pi*180.0,label='MisRR')
         plt.ylabel('Guess/ Align [deg]')
-        plt.legend({'GuessFL','GuessFR','GuessRL','GuessRR',
-                    'MisFL','MisFR','MisRL','MisRR',})
+        plt.legend()
         plt.grid()
         
                 
