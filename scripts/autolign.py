@@ -4,8 +4,8 @@ import sys, time, math
 import numpy             as np
 import ctrl_autolign     as ctrl
 import learn_autolign    as learn
-import matplotlib.pyplot as plt
 from   sim_autolign  import X1Simulator
+from   plot_autolign import Plotter
 try: 
     import ros_autolign
 except:
@@ -82,19 +82,12 @@ if __name__ == '__main__':			# main function
         
         sim = X1Simulator() # initialize sim
         sim.setState(state) # initialize sim state
-        E = []
-        N = []
-        UX = []
+        plotter = Plotter()
+
         for i in range(int(T/dt)):
             state = simLoop(guess,i)		# run simulation loop
-            E = np.r_[E, state['E']]
-            N = np.r_[N, state['N']]
-            UX = np.r_[UX,state['Ux']]
+            plotter.store(state)
 
-        plt.subplot(211)
-        plt.plot(E,N)
-        plt.axis('equal')
-        plt.subplot(212)
-        plt.plot(UX)
-        plt.tight_layout()
-        plt.show()
+        plotter.plot()      # plot simulation result
+
+ 
