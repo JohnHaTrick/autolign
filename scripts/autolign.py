@@ -4,8 +4,8 @@ import sys, time, math
 import numpy             as np
 import ctrl_autolign     as ctrl
 import learn_autolign    as learn
-import matplotlib.pyplot as plt
 from   sim_autolign  import X1Simulator
+from   plot_autolign import Plotter
 try: 
     import ros_autolign
 except:
@@ -26,6 +26,10 @@ def simLoop(guess,i):
     state    = sim.simulateX1(del_real, Fxr, dt)	# simulate cmds
     guess    = learn.gradDescent(guess, del_cmd,
                                  state, dt, path, i)	# calc RL
+    # for plot
+    e = ctrl.calcLateralError(path,state)
+    dPsi = ctrl.calcHeadingError(path,state)
+    state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
     print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
 	+ "Guess:         [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
     time.sleep(.01)
@@ -82,19 +86,13 @@ if __name__ == '__main__':			# main function
         
         sim = X1Simulator() # initialize sim
         sim.setState(state) # initialize sim state
-        E = []
-        N = []
-        UX = []
+        plotter = Plotter()
+
         for i in range(int(T/dt)):
             state = simLoop(guess,i)		# run simulation loop
-            E = np.r_[E, state['E']]
-            N = np.r_[N, state['N']]
-            UX = np.r_[UX,state['Ux']]
+            state.update(t=dt*i)
+            plotter.store(state)
 
-        plt.subplot(211)
-        plt.plot(E,N)
-        plt.axis('equal')
-        plt.subplot(212)
-        plt.plot(UX)
-        plt.tight_layout()
-        plt.show()
+        plotter.plot()      # plot simulation result
+
+ 
