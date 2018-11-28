@@ -22,10 +22,10 @@ def simLoop(guess,i):
     print "i: ",i," E:",round(state['E'],2)," N:",round(state['N'],2)," Psi:",round(state['psi'],2),\
           " Ux:",round(state['Ux'],2)," Uy:",round(state['Uy'],2)," r:",round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    #del_cmd -= guess					# apply misalignment and guess
-    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+    #del_cmd -= guess					# apply guess (if desired)
+    Fxr      = ctrl.PI_Ctrl(path,state)			# calc Fx cmd (rear axle)
     print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
-    del_real = del_cmd + misalign
+    del_real = del_cmd + misalign                       # apply misalignment
     state    = sim.simulateX1(del_real, Fxr, dt)	# simulate cmds
     guess    = learn.gradDescent(guess, del_cmd,
                                  state, dt, path, i)	# calc RL
@@ -36,7 +36,7 @@ def simLoop(guess,i):
       {'mis1':misalign[0],'mis2':misalign[1],'mis3':misalign[2],'mis4':misalign[3],
         'guess1':guess[0], 'guess2':guess[1], 'guess3':guess[2], 'guess4':guess[3],
        'delta':del_cmd[0],         'Fxr':Fxr,             'e':e,             'v':v},
-                      order=ordered )
+                      order=ordered )			# save data
     #time.sleep(.01)
     return state,np.stack(guess)
 
@@ -72,10 +72,10 @@ if __name__ == '__main__':			# main function
     path  = ctrl.loadPath_debug()		#   get path
     #path  = ctrl.loadPath_VAIL()		#   get path
 
-    if mode == 'exp':               # Mode == exp
-        ros_autolign.listener()         #   collect initial state
+    if mode == 'exp':				# Mode == exp
+        ros_autolign.listener()			#   collect initial state
         while(1):
-            expLoop()               #   run experiment loop
+            expLoop()				#   run experiment loop
 
     elif mode == 'sim':
         misalign = 5*np.random.uniform(-1,1,4) \
@@ -89,19 +89,17 @@ if __name__ == '__main__':			# main function
 		   'r'  : 0
 		  }				# initialize state
         
-        sim = X1Simulator() # initialize sim
-        sim.setState(state_0) # initialize sim state
+        sim = X1Simulator()                     # initialize sim
+        sim.setState(state_0)                   # initialize sim state
         E = []
-        N = []
+        N = []					# empty vectors for simple plots
         UX = []
 
-	# create file
-	#ordered = ['misalign1','misalign2','misalign3','misalign4']
+	start_time = time.time()		# create save file
 	ordered = [  'mis1',     'mis2',     'mis3',     'mis4',
                    'guess1',   'guess2',   'guess3',   'guess4',
                     'delta',      'Fxr',        'e',        'v']
 	filename   = fm.initializer(order=ordered)
-	start_time = time.time()
 	
         for i in range(n):
             state,guess = simLoop(guess,i)	# run simulation loop
@@ -109,9 +107,8 @@ if __name__ == '__main__':			# main function
             N = np.r_[N, state['N']]
             UX = np.r_[UX,state['Ux']]
 	
-	#sim = X1Simulator()
-	ctrl.Integrator.i = 0
-	sim.setState(state_0)
+	sim.setState(state_0)			# Reset state for a Validation Trial
+	ctrl.Integrator.i = 0			# Reset longitudinal ctrl integrator
 	for j in range(n):
 	    state    = sim.getState()				# current state
 	    e = ctrl.calcLateralError(path,state)
@@ -120,19 +117,20 @@ if __name__ == '__main__':			# main function
                   " Psi:",round(state['psi'],2)," Ux:",round(state['Ux'],2), \
                   " Uy:",round(state['Uy'],2)," r:",round(state['r'],2)
 	    del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-	    del_cmd -= guess					# apply misalignment and guess
-	    Fxr      = ctrl.PI_Ctrl(path,state)		# calc longitudinal cmd (rear axle)
+	    del_cmd -= guess					# apply guess (if desired)
+	    Fxr      = ctrl.PI_Ctrl(path,state)			# calc Fx cmd (rear axle)
 	    print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
-	    del_real = del_cmd + misalign
+	    del_real = del_cmd + misalign			# apply misalignment
 	    state    = sim.simulateX1(del_real, Fxr, dt)	# simulate cmds
-	    print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
-		+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
-
+	    print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],
+						      misalign[2],misalign[3])\
+		+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],
+                                                      guess[2],guess[3]) 
 	    fm.write_row_csv( filename,
               {'mis1':misalign[0],'mis2':misalign[1],'mis3':misalign[2],'mis4':misalign[3],
 	        'guess1':guess[0], 'guess2':guess[1], 'guess3':guess[2], 'guess4':guess[3],
 	       'delta':del_cmd[0],         'Fxr':Fxr,             'e':e,             'v':v},
-	                      order=ordered )
+	                      order=ordered )			# save data
 	    	    
         plt.subplot(211)
         plt.plot(E,N)
