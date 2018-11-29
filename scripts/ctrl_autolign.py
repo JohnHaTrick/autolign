@@ -6,7 +6,7 @@ def lookAheadCtrl(path,state):
     # Kapania & Gerdes. Autonomous Lanekeeping Sys for Path Tracking. AVEC. 2014
     del_max = .3
     x_LA    =  20				# [m]     look ahead dist
-    k_p	    =  .1				# [rad/m] proportional gain
+    k_p	    =  .2				# [rad/m] proportional gain
     e       =  calcLateralError(path,state)	# [m]     current lateral error
     dPsi    =  calcHeadingError(path,state)     # [rad]   heading error
     e_LA    =  e + x_LA * dPsi			# [m]     look ahead lateral error
@@ -16,12 +16,15 @@ def lookAheadCtrl(path,state):
     del_r   =  0
     if del_f > del_max:	   del_f = del_max
     elif del_f < -del_max: del_f = -del_max
+
+    print "e: ",e," e_LA: ",e_LA," dPsi: ",dPsi
+
     return [del_f, del_f, del_r, del_r]		# [FL, FR, RL, RR]
 
 def PI_Ctrl(path,state):
     v_error = path['v'] - state['Ux']		# [m/s]   speed error, assume Ux >> Uy
-    k_p     = 1000				# [N/mps] proportional gain
-    k_i     = 10				# [N/mps] integral gain
+    k_p     = 2000				# [N/mps] proportional gain
+    k_i     = 20				# [N/mps] integral gain
     try:    Integrator.i
     except: Integrator()			# instantiate integraor
     Integrator.i += v_error			# integrate
@@ -37,7 +40,7 @@ def loadPath_debug():
             'N'    :    0     ,			# [m]   init pos North
             'psi'  :    0     ,			# [rad] init heading, ccw from N
             'k'    :    0     ,			# [1/m] curvature
-            'v'    :    3     ,			# [m/s] desired speed
+            'v'    :    4     ,			# [m/s] desired speed
 	   }
     return path
 
@@ -47,7 +50,7 @@ def loadPath_VAIL():
             'N'    :  -10.7145,			# [m]   init pos North
             'psi'  :    1.520 ,			# [rad] init heading, ccw from N
             'k'    :    0     ,			# [1/m] curvature
-            'v'    :    3     ,			# [m/s] desired speed
+            'v'    :    4     ,			# [m/s] desired speed
 	   }
     return path
 
