@@ -266,8 +266,6 @@ class Animator:
                 storage.E[0:i:frameInterval],storage.N[0:i:frameInterval]))
             
         # Set up formatting for the movie files
-        Writer = animation.writers['ffmpeg']
-        self.writer = Writer(fps=30, metadata=dict(artist='Me'), bitrate=1800)
         self.ani = animation.ArtistAnimation(fig,self.artists,interval=animIntervalMillisec,blit=True)
 
     def showAnim(self,storage):
@@ -276,6 +274,8 @@ class Animator:
         plt.show() # To show anim in window
         
     def saveAnim(self,storage,mp4FileName):
+        Writer = animation.writers['ffmpeg']
+        writer = Writer(fps=30, metadata=dict(artist='Me'), bitrate=1800)
         fig = plt.figure(figsize=(16,9))
         self.buildAnim(storage,fig)
-        self.ani.save(mp4FileName, writer=self.writer) # To save anim in mp4 file
+        self.ani.save(mp4FileName, writer=writer) # To save anim in mp4 file
