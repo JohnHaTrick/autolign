@@ -85,4 +85,5 @@ class Plotter:
         
                 
         #plt.tight_layout()
-        plt.show()        
+        plt.show()
+	#plt.draw()        
