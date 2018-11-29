@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 # Useful random utility functions
+import datetime
+import time
 
 def welcome(args):
      print ("\nStarting %s" % args[0][-11:-3])       # Welcome message
@@ -15,4 +17,7 @@ def welcome(args):
          print ("in sim mode (by default)\n")
          mode = 'sim'
      return mode
+
+def getfilename():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H-%M-%S')
 

@@ -13,8 +13,8 @@ __author__      = "icoen"
 
 import numpy as np
 import csv
-import datetime
 import time
+import util_autolign as util
 
 #rows=[]	#List of: Dictionaries containing North, East...
 headers = ['E', 'N', 'psi', 'Ux', 'Uy', 'r']	#List of Dictionaries keys
@@ -23,9 +23,9 @@ hehe=[]
 
 #Creates File
 #Args: (),"File","File+" --> Timestamp.CSV, File.CSV, File-Timestamp.CSV 
-def initializer(filename = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H-%M-%S'), **sets): 
+def initializer(filename = util.getfilename(), **sets): 
 	if filename[-1:]=='+':
-	   filename = filename[:-1]+'-'+datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H-%M-%S')
+	   filename = filename[:-1]+'-'+util.getfilename()
 	filename +='.csv'
 	with open(filename, 'a') as csvfile:
          writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)

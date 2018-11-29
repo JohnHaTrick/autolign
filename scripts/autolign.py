@@ -4,11 +4,11 @@ import sys, time, math
 import numpy             as np
 import ctrl_autolign     as ctrl
 import learn_autolign    as learn
-import matplotlib.pyplot as plt
 import fileman           as fm
 import sim_autolign      as sim
 import util_autolign     as util
-from   plot_autolign import Plotter
+import plot_autolign     as plot
+import anim_autolign     as anim
 try: 
     import ros_autolign
 except:
@@ -24,7 +24,9 @@ def simLoop(guess,i,sim_mode):
     print "i: ",i," E: "  ,round(state['E'],2)  ," N: " ,round(state['N'],2), \
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
-    del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
+    #del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
+    del_cmd  = (0,0,0,0)#ctrl.lookAheadCtrl(path,state)           # calc steer cmds
+    
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
     Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
@@ -49,7 +51,7 @@ def simLoop(guess,i,sim_mode):
                                  'e':e,              'v':v             },
                       order=ordered )                   # write data
     state.update(t=dt*i)                                # add time to dict
-    plotter.store(state)                                # store for plotting
+    storage.store(state)                                # store for plotting
     #time.sleep(.01)                                    # pause for debug?
     return np.stack(guess)                              # end learning loop
 
@@ -77,7 +79,8 @@ if __name__ == '__main__':			    #### main function ####
                 'delta' , 'Fxr'   , 'e'     , 'v'      ]
     filename   = fm.initializer(order=ordered)      #   this header & timestamp
 
-    plotter = Plotter()                             # init Plotter class
+    plotter = plot.Plotter()                             # init Plotter class
+    storage = plot.Storage()                             # init Storage class
 
     if mode == 'exp':				    ### Mode == exp ###
         ros_autolign.listener()			    # collect init state
@@ -105,4 +108,10 @@ if __name__ == '__main__':			    #### main function ####
 	for j in range(n):                          # n validation iterations
             guess = simLoop(guess,j,'val')          # sim loop : validation mode
 	    
-        plotter.plot()                              # plot simulation result
+    plotter.plot(storage)               # plot simulation result
+
+    # Animation
+    ani = anim.Animator()
+    #ani.showAnim(storage)             # show animation
+    ani.saveAnim(storage, util.getfilename()+'.mp4') # save animation
+

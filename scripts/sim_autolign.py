@@ -83,7 +83,7 @@ class NonlinearSimulator:
                                             self.vx - X1.d * self.r))
         fy4 = X1.C4 * (-delta4 + np.arctan2(self.vy - X1.b * self.r,
                                             self.vx + X1.d * self.r))
-        fy = (fy1,fy2,fy3,fy4)
+        self.fy = (fy1,fy2,fy3,fy4)
         
         f1cx = fx1 * np.cos(delta1) - fy1 * np.sin(delta1)
         f2cx = fx2 * np.cos(delta2) - fy2 * np.sin(delta2)
@@ -121,7 +121,7 @@ class NonlinearSimulator:
 
         # return next state
         return [ self.psi_n, self.east_n, self.north_n, 
-                 self.r_n,   self.vx_n,   self.vy_n,    fy ]
+                 self.r_n,   self.vx_n,   self.vy_n,    self.fy ]
 
     def setState(self, state):
         # set class structured state according to dictionary
@@ -157,7 +157,9 @@ class NonlinearSimulator:
                  'psi'  : self.psi_n  ,		# [rad]   heading
                  'Ux'   : self.vx_n   ,		# [m/s]   longitudinal speed
                  'Uy'   : self.vy_n   ,		# [m/s]   lateral speed
-                 'r'    : self.r       }        # [rad/s] yawrate
+                 'r'    : self.r      ,        # [rad/s] yawrate
+                 'Fx'   : self.fx     ,        # [N] Longitudinal forces of tire
+                 'Fy'   : self.fy     ,}       # [N] Lateral forces of tire
         return state
 
 class LinearSimulator:
