@@ -244,18 +244,18 @@ class Animator:
             east = storage.E[i];
             north = storage.N[i];
             psi = storage.Psi[i];
-            delta1 = storage.delta[:,0][i];
-            delta2 = storage.delta[:,1][i];
-            delta3 = storage.delta[:,2][i];
-            delta4 = storage.delta[:,3][i];
-            fx1 = storage.Fx[:,0][i];
-            fx2 = storage.Fx[:,1][i];
-            fx3 = storage.Fx[:,2][i];
-            fx4 = storage.Fx[:,3][i];
-            fy1 = storage.Fy[:,0][i];
-            fy2 = storage.Fy[:,1][i];
-            fy3 = storage.Fy[:,2][i];
-            fy4 = storage.Fy[:,3][i];
+            delta1 = storage.delta[i,0];
+            delta2 = storage.delta[i,1];
+            delta3 = storage.delta[i,2];
+            delta4 = storage.delta[i,3];
+            fx1 = storage.Fx[i,0];
+            fx2 = storage.Fx[i,1];
+            fx3 = storage.Fx[i,2];
+            fx4 = storage.Fx[i,3];
+            fy1 = storage.Fy[i,0];
+            fy2 = storage.Fy[i,1];
+            fy3 = storage.Fy[i,2];
+            fy4 = storage.Fy[i,3];
             print i
             plt.grid()
             plt.axis('equal')
