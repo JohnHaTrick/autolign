@@ -24,8 +24,7 @@ def simLoop(guess,i,sim_mode):
     print "i: ",i," E: "  ,round(state['E'],2)  ," N: " ,round(state['N'],2), \
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
-    #del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    del_cmd  = (0,0,0,0)#ctrl.lookAheadCtrl(path,state)           # calc steer cmds
+    del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
     
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
