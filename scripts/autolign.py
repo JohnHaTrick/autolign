@@ -25,7 +25,7 @@ def simLoop(guess,i,sim_mode):
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    del_cmd += .2 * np.sin( i / 10 )
+    #del_cmd += .2 * np.sin( i / 10 )
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
     Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
@@ -67,8 +67,8 @@ def expLoop():
 if __name__ == '__main__':			    #### main function ####
 						    # Params and inits:
     mode  = util.welcome(sys.argv)      	    #   choose sim or exp
-    dt    = .01					    #   100 msec per trial
-    T     = 10 					    #   [s] sim/exp term
+    dt    = 0.01				    #   100 msec per trial
+    T     = 5					    #   [s] sim/exp term
     n     = int(T/dt)				    #   num trials
     guess = np.array([0.0,0.0,0.0,0.0])		    #   [FL, FR, RL, RR]
     path  = ctrl.loadPath_debug()		    #   get path
@@ -87,10 +87,10 @@ if __name__ == '__main__':			    #### main function ####
         while(1): expLoop()			    # run exp loop
 
     elif mode == 'sim':                             ### Mode == sim ###
-        misalign = 2 * np.random.uniform(-1,1,4) \
+        misalign = .5 * np.random.uniform(-1,1,4) \
                      * math.pi/180		    # [rad] set true alignment
-	misalign = .5 * np.array([ 1, 0, 0, 0 ]) \
-		     * math.pi/180		    # debug
+	#misalign = .5 * np.array([ 1, 0, 0, 0 ]) \
+	#	     * math.pi/180		    # debug
         state_0 = {'E'  : path['E']+0, # error?
 		   'N'  : path['N']+0, # error?
 		   'psi': path['psi'],
@@ -104,10 +104,10 @@ if __name__ == '__main__':			    #### main function ####
         for i in range(1,n+1):                      # n learning iterations
             guess = simLoop(guess,i,'lrn')          # sim loop : learning mode
 	
-        '''                                            ## Validation Trials ##
+                                                    ## Validation Trials ##
 	NLsim.setState(state_0)			    # Reset sim state
 	ctrl.Integrator.i = 0			    # Reset ctrl integrator
 	for j in range(1,n+1):                          # n validation iterations
             guess = simLoop(guess,j,'val')          # sim loop : validation mode
-	'''    
+	    
         plotter.plot()                              # plot simulation result

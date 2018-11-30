@@ -35,14 +35,11 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 
     # Try assigning only one wheel per iteration
     wheel      = np.mod( iteration, 4 )	+ 1		# working on this wheel in [1 4]
-    wheel = 1
+    # wheel = 1
     wheel_rand = rand.sample(values[wheel].keys(),1)[0]	# here's the random assignment
-
-    #wheel_rand = 1 * math.pi / 180
 
     guess_rand          = list(guess)
     guess_rand[wheel-1] = wheel_rand			# keep the others as best guess so far
-
 
     '''
     guess_rand = rand.sample( values[1].keys(), 4 )	# get 4 random guesses for learning
@@ -114,7 +111,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	print 'All values for wheel %i have not been tried. Go to next iter' % wheel
 
     #print 'i = ',iteration
-    if ( np.mod(iteration,5) == 0 or iteration == 0 ) and each_angle_tried:
+    if ( np.mod(iteration,21) == 0 or iteration == 0 ) and each_angle_tried:
 
 	x = []
 	for angle in sorted(values[1].keys()):

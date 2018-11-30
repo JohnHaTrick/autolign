@@ -26,7 +26,7 @@ class X1(object):
     a  =       1.50                 # [m]      Front length
     b  =       1.37                 # [m]      Rear length  
     l  =  a + b                     # [m]      Wheel base
-    d  =       0.82                 # [m]      Half Tread
+    d  =       1*0.82               # [m]      Half Tread
     Iz =    2900.0                  # [kg-m^2] Inertia 2250 = 1000*1.5*1.5
     Cf = -140000.0                  # [N/rad]  Front Axle Cornering Stiffness 
     Cr = -190000.0                  # [N/rad]  Rear Axle Cornering Stiffness
