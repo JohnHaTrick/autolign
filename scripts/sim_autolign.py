@@ -160,6 +160,115 @@ class NonlinearSimulator:
                  'r'    : self.r       }        # [rad/s] yawrate
         return state
 
+class NonlinearSimulator_2:
+    """ High Fidelity 4 Wheel Vehicle Simulation Class """
+    # Receives state_0 and doesn't mess with statically saved memory
+
+    def __init__(self):
+        X1()                        #     Vehicle params
+        self.dt       = 0.001	    # [s] Internal sim time step
+        self.east     = 0.0         #     Simulation-level states
+        self.north    = 0.0
+        self.psi      = 0.0
+        self.vx       = 0.0
+        self.vy       = 0.0
+        self.yawrate  = 0.0
+        self.fx       = [0.0] * 4   #     Simulation commands
+        self.delta_fr = [0.0] * 2
+            
+    def setCommand(self,fx,delta_fr):
+        # fx:       List of 4 longitudinal forces to each wheel(FL,FR,RL,RR)
+        # delta_fr: List of 2 steering angles to each axles(Front, Rear)
+        self.fx = fx
+        self.delta_fr = delta_fr
+
+    def simulate_dt(self):
+        # propogate self.state forward by one (small) dt
+        #   Not the same as the (larger) autolignment dt
+
+        # Calc ackermann steer angle of 4 wheels, in case of bicycle commands
+        # self.delta_4ws = ackermann(self.del_fr, self.del_fr, self.d, self.l)
+        [delta1, delta2, delta3, delta4] = self.delta_4ws
+        [fx1, fx2, fx3, fx4]             = self.fx
+        
+        # Calc forces to each tire    
+        fy1 = X1.C1 * (-delta1 + np.arctan2(self.vy + X1.a * self.r,
+                                            self.vx - X1.d * self.r))
+        fy2 = X1.C2 * (-delta2 + np.arctan2(self.vy + X1.a * self.r,
+                                            self.vx + X1.d * self.r))
+        fy3 = X1.C3 * (-delta3 + np.arctan2(self.vy - X1.b * self.r,
+                                            self.vx - X1.d * self.r))
+        fy4 = X1.C4 * (-delta4 + np.arctan2(self.vy - X1.b * self.r,
+                                            self.vx + X1.d * self.r))
+        fy = (fy1,fy2,fy3,fy4)
+        
+        f1cx = fx1 * np.cos(delta1) - fy1 * np.sin(delta1)
+        f2cx = fx2 * np.cos(delta2) - fy2 * np.sin(delta2)
+        f3cx = fx3 * np.cos(delta3) - fy3 * np.sin(delta3)
+        f4cx = fx4 * np.cos(delta4) - fy4 * np.sin(delta4)
+        f1cy = fx1 * np.sin(delta1) + fy1 * np.cos(delta1)
+        f2cy = fx2 * np.sin(delta2) + fy2 * np.cos(delta2)
+        f3cy = fx3 * np.sin(delta3) + fy3 * np.cos(delta3)
+        f4cy = fx4 * np.sin(delta4) + fy4 * np.cos(delta4)
+        sigma1 = f1cx + f2cx + f3cx + f4cx
+        sigma2 = f1cy + f2cy + f3cy + f4cy
+
+        # Calc derivatives
+        psidot =  self.r
+        edot   = -self.vy * np.cos(self.psi) - self.vx * np.sin(self.psi)
+        ndot   =  self.vx * np.cos(self.psi) - self.vy * np.sin(self.psi)
+        vxdot  =  self.r  * self.vy + 1 / X1.M * sigma1
+        vydot  = -self.r  * self.vx + 1 / X1.M * sigma2
+        rdot   =  1/X1.Iz * ( X1.d  * ( - f1cx + f2cx - f3cx + f4cx )
+                            + X1.a  * (   f1cy + f2cy               )
+			    - X1.b  * (   f3cy + f4cy               ) )
+
+        # Calc next state
+        self.psi   = self.psi   + self.dt * psidot 
+        self.east  = self.east  + self.dt * edot 
+        self.north = self.north + self.dt * ndot 
+        self.r     = self.r     + self.dt * rdot 
+        self.vx    = self.vx    + self.dt * vxdot 
+        self.vy    = self.vy    + self.dt * vydot 
+
+    def setState(self, state):
+        # set class structured state according to dictionary
+        self.psi   = state['psi']
+        self.east  = state['E'  ]
+        self.north = state['N'  ]
+        self.vx    = state['Ux' ]
+        self.vy    = state['Uy' ]
+        self.r     = state['r'  ]
+
+    def getState(self):
+        # return state as dictionary
+        state = {'E'    : self.east ,		# [m]     pos East
+                 'N'    : self.north,		# [m]     pos North
+                 'psi'  : self.psi  ,		# [rad]   heading
+                 'Ux'   : self.vx   ,		# [m/s]   longitudinal speed
+                 'Uy'   : self.vy   ,		# [m/s]   lateral speed
+                 'r'    : self.r     }          # [rad/s] yawrate
+        return state
+        
+    def simulate_T(self, state, del_cmd, Fxr, T):
+        # set command and state to simulator
+	self.setState(state)
+        self.fx = [0,0,Fxr,Fxr]
+        self.delta_4ws = del_cmd
+
+        # simulate
+	for i in range(int(T/self.dt)):
+	    self.simulate_dt()
+        
+        # return state
+        state = {'E'    : self.east ,		# [m]     pos East
+                 'N'    : self.north,	        # [m]     pos North
+                 'psi'  : self.psi  ,		# [rad]   heading
+                 'Ux'   : self.vx   ,		# [m/s]   longitudinal speed
+                 'Uy'   : self.vy   ,		# [m/s]   lateral speed
+                 'r'    : self.r     }          # [rad/s] yawrate
+        return state
+
 class LinearSimulator:
     """
     Linearized 4 Wheel Vehicle Simulation Class
