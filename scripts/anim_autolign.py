@@ -12,14 +12,13 @@ def drawCog(x,y,psi,radius):
     cosval = np.insert(np.append(radius*np.cos(alpha),0),0,0) # append 0's at 1st & end to np.ndarray
     sinval = np.insert(np.append(radius*np.sin(alpha),0),0,0) # append 0's at 1st & end to np.ndarray
     artists.extend(plt.fill(x*np.ones(res+2) + cosval, y*np.ones(res+2) + sinval, 'k'))
-    alpha = np.linspace(90, 180, res)/180.0*pi + psi 
-    artists.extend(plt.plot(x*np.ones(res)+radius*np.cos(alpha), y*np.ones(res)+radius*np.sin(alpha),'k'))
     alpha = np.linspace(180, 270, res)/180.0*pi + psi 
     cosval = np.insert(np.append(radius*np.cos(alpha),0),0,0)
     sinval = np.insert(np.append(radius*np.sin(alpha),0),0,0)
     artists.extend(plt.fill(x*np.ones(res+2)+cosval, y*np.ones(res+2)+ sinval, 'k'))
-    alpha = np.linspace(270, 360, res)/180.0*pi + psi 
-    artists.extend(plt.plot(x*np.ones(res)+radius*np.cos(alpha), y*np.ones(res)+radius*np.sin(alpha),'k'))
+    res = res*4 # full circle
+    alpha = np.linspace(0, 360, res)/180.0*pi + psi 
+    artists.extend(plt.plot(x*np.ones(res)+radius*np.cos(alpha), y*np.ones(res)+radius*np.sin(alpha),'k',linewidth=1))
     return artists
 
 def trans2d(Zin, Zoom, Move, theta):
@@ -241,21 +240,21 @@ class Animator:
         animIntervalMillisec = 100 # animation interval time between frames
 
         for i in np.arange(0,N,frameInterval):
-            east = storage.E[i];
-            north = storage.N[i];
-            psi = storage.Psi[i];
-            delta1 = storage.delta[i,0];
-            delta2 = storage.delta[i,1];
-            delta3 = storage.delta[i,2];
-            delta4 = storage.delta[i,3];
-            fx1 = storage.Fx[i,0];
-            fx2 = storage.Fx[i,1];
-            fx3 = storage.Fx[i,2];
-            fx4 = storage.Fx[i,3];
-            fy1 = storage.Fy[i,0];
-            fy2 = storage.Fy[i,1];
-            fy3 = storage.Fy[i,2];
-            fy4 = storage.Fy[i,3];
+            east = storage.E[i]
+            north = storage.N[i]
+            psi = storage.Psi[i]
+            delta1 = storage.delta[i,0]
+            delta2 = storage.delta[i,1]
+            delta3 = storage.delta[i,2]
+            delta4 = storage.delta[i,3]
+            fx1 = storage.Fx[i,0]
+            fx2 = storage.Fx[i,1]
+            fx3 = storage.Fx[i,2]
+            fx4 = storage.Fx[i,3]
+            fy1 = storage.Fy[i,0]
+            fy2 = storage.Fy[i,1]
+            fy3 = storage.Fy[i,2]
+            fy4 = storage.Fy[i,3]
             print i
             plt.grid()
             plt.axis('equal')
