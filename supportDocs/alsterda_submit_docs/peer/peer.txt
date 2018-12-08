@@ -1,0 +1,36 @@
+
+John Alsterda
+CS221
+2018 DEC 7
+Project Peer Review
+
+AI Super Tic-Tac-Toe
+  Problem Statement
+    Train an AI to play a zero-sum 9 board tic-tac-toe game against random, human, and other AI opponents.
+  Strategies Used
+    Minimax & Expectimax
+    Monte-Carlo Tree Search
+  Conclusions
+    MCTS won handily, just as it did in Alpha Go.  Minimax couldn't go deep enough to work well. Expectimax assumption of random opponent is a poor expectation.
+
+NHL Hockey Player Performance Prediction
+  Problem Statement
+    Predict scores of 1:4 NHL hockey performance based on AHL data.
+  Strategies Used
+    Naive-Bayes
+    Softmax
+    SVM
+    Neural Network (planned to implement)
+  Conclusions
+    Good at predicting 4 (poor performance).  Bad at predicting 1 (top performance).  They will try modifying cost function to penalize missing higher performers.  Very few training points for top performers makes training tough.
+
+Ethical Life Pro Tips
+  Problem Statement
+    Evaluate reddit.com Life Pro Tips (LPT) as ethical or unethical.  Data tagged by posts submission to LPT or 'unethical LPT' subreddits.
+  Strategies Used
+    Hidden Markov Model
+    Naive Bayes
+    Ensemble
+  Conclusions
+    Good performance. Some interesting results such as: 'Take drugs for depression' categorized as good.  I think it could go either way, good for prescription drugs and possibly bad for illicit drugs.
+
