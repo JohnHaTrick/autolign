@@ -25,21 +25,26 @@ def simLoop(guess,i,sim_mode):
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
+    #del_cmd += .2 * np.sin( i / 10 )
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
     Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
-    print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
+    print "Steer %.2f rad and throttle %.2f N\n" % (float(del_cmd[0]),Fxr)
     del_real = del_cmd + misalign                       # apply misalignment
     state    = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
+    print 'state before learning: ',state
     if sim_mode == 'lrn':                               # if learning,
-        guess = learn.gradDescent(guess, del_cmd,
-                                  state, dt, path, i)	#   calc gradDescent
+        #guess = learn.gradDescent(guess, del_cmd,
+        #                          state, dt, path, i)	#   calc gradDescent
+	guess = learn.valueEst(guess, del_cmd, Fxr,
+			       state, dt, path, i)	#   or calc value estimation
+    print 'state after learning: ',state
     e = ctrl.calcLateralError(path,state)               # update storage
     dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
-    print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
+    print "\nTru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
         % (misalign[0],misalign[1],misalign[2],misalign[3]) \
-	+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n"                \
+	+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n\n"              \
         % (guess[0],guess[1],guess[2],guess[3])         # status update
     fm.write_row_csv( filename, {'mis1':misalign[0], 'mis2':misalign[1],
                                  'mis3':misalign[2], 'mis4':misalign[3],
@@ -64,10 +69,10 @@ def expLoop():
 if __name__ == '__main__':			    #### main function ####
 						    # Params and inits:
     mode  = util.welcome(sys.argv)      	    #   choose sim or exp
-    dt    = .01					    #   100 msec per trial
-    T     =  4					    #   [s] sim/exp term
+    dt    = 0.01				    #   100 msec per trial
+    T     = 6					    #   [s] sim/exp term
     n     = int(T/dt)				    #   num trials
-    guess = np.array([0,0,0,0])			    #   [FL, FR, RL, RR]
+    guess = np.array([0.0,0.0,0.0,0.0])		    #   [FL, FR, RL, RR]
     path  = ctrl.loadPath_debug()		    #   get path
     #path  = ctrl.loadPath_VAIL()		    #   get path
 
@@ -84,8 +89,10 @@ if __name__ == '__main__':			    #### main function ####
         while(1): expLoop()			    # run exp loop
 
     elif mode == 'sim':                             ### Mode == sim ###
-        misalign = 5 * np.random.uniform(-1,1,4) \
+        misalign = 1 * np.random.uniform(-1,1,4) \
                      * math.pi/180		    # [rad] set true alignment
+	#misalign = .5 * np.array([ 1, 0, 0, 0 ]) \
+	#	     * math.pi/180		    # debug
         state_0 = {'E'  : path['E']+0, # error?
 		   'N'  : path['N']+0, # error?
 		   'psi': path['psi'],
@@ -96,13 +103,13 @@ if __name__ == '__main__':			    #### main function ####
 
                                                     ## Learning Trials ##
         NLsim.setState(state_0)			    # init NL sim state
-        for i in range(n):                          # n learning iterations
+        for i in range(1,n+1):                      # n learning iterations
             guess = simLoop(guess,i,'lrn')          # sim loop : learning mode
 	
                                                     ## Validation Trials ##
 	NLsim.setState(state_0)			    # Reset sim state
 	ctrl.Integrator.i = 0			    # Reset ctrl integrator
-	for j in range(n):                          # n validation iterations
+	for j in range(1,n+1):                          # n validation iterations
             guess = simLoop(guess,j,'val')          # sim loop : validation mode
 	    
         plotter.plot()                              # plot simulation result
