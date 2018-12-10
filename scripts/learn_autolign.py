@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import random        as     rand
 import numpy         as     np
+from   copy          import deepcopy
 import ctrl_autolign as     ctrl
 from   sim_autolign  import X1, NonlinearSimulator_2, LinearSimulator
 
@@ -14,12 +15,14 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     # 2: Regress a parabola for each wheel
     # 3: Solve for maximum valued (parabola) guess for each wheel
 
+    # Parameters
+    num_bins       = 17			#   Total number of discrete guess bins
+    max_angle      = 2 * math.pi / 180	#   [rad] Check consistency w max misalign
+
     ## 1:
     if not memory.values:			# First iter -> initialize params & values:
 	print 'No value estimation for 1st iteration'
 	memory.state_0 = state_1		#   save state for next time
-	num_bins       = 17			#   Total number of discrete guess bins
-	max_angle      = 2 * math.pi / 180	#   [rad] Check consistency w max misalign
 	values         = dict()			#   Init the value table to zero [wheel][angle]
 	for i in range(4):
 	    values[i+1] = dict()
@@ -58,14 +61,10 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     delta_rand = np.array(delta) + np.array(guess_rand)
     state_1_model = NLSim.simulate_T( state_0, delta_rand, Fxr, dt )		
 
-    print 'state 1        : ',roundDict(state_1,3)
-    print 'state 1 w guess: ',roundDict(state_1_model,3)
+    print 'state 1        : ',roundDict(deepcopy(state_1)      ,3)
+    print 'state 1 w guess: ',roundDict(deepcopy(state_1_model),3)
 
-    value = 0
-    for key in state_1.keys():				# try neg 2-norm
-	value -= np.power( state_1[key] - state_1_model[key] , 2 )
-	#value -= abs( state_1[key] - state_1_model[key] )
-    #value = -np.power(value,1.0/2)
+    value = -calcCost(state_1,state_1_model)
     print 'value = ',value
 
     #for i in range(4):
@@ -103,6 +102,8 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
    
 	# 3: derivative of parabola wrt x = 0
 	guess_wheel = -w[1] / w[2] / 2
+	guess_wheel = min(guess_wheel, max_angle)
+	guess_wheel = max(guess_wheel,-max_angle)
 
 	print 'updated guess = ',guess_wheel
 	guess[wheel-1] = guess_wheel
@@ -113,21 +114,37 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     #print 'i = ',iteration
     if ( np.mod(iteration,21) == 0 or iteration == 0 ) and each_angle_tried:
 
-	x = []
+	x_deg = []
+	x_rad = []
 	for angle in sorted(values[1].keys()):
-	    x.append(angle)
+	    x_rad.append(angle)
+	    x_deg.append(angle*180/math.pi)
 
 	y = []
-	for i in range(len(x)):
-	    y.append(w[0] + w[1]*x[i] + w[2]*x[i]*x[i])
+	for i in range(len(x_rad)):
+	    y.append(w[0] + w[1]*x_rad[i] + w[2]*x_rad[i]*x_rad[i])
 
-	plt.plot(x,y)
-	plt.scatter(x,v)
+	plt.plot(x_deg,y)
+	plt.scatter(x_deg,v)
 	plt.show()
 
     memory.values = values
     return guess
 
+def calcCost(s_1,s_2):		# calculate positive-valued cost
+				#    between full-states
+    weight        = dict()
+    weight['E']   = 1	    	# state variable weights
+    weight['N']   = 1	
+    weight['psi'] = 1
+    weight['r']   = 1
+    weight['Ux']  = 10
+    weight['Uy']  = 1
+
+    cost = 0
+    for key in weight.keys():	# sum of squares
+	cost += np.power( (s_1[key] - s_2[key]) * weight[key] ,2 )
+    return cost
 
 def gradDescent(guess,delta,state_1,dt,path,i):
     # minimize cost function (x_1_meas - x_1_model)^2
@@ -156,6 +173,6 @@ class memory(object):
     values  = dict()				# save value list here [ 4 x num_bins ]
 
 def roundDict(dictionary,decimals):		# Round each value in the dict
-    for key in dictionary.keys():
+    for key in dictionary.keys():		#   CAREFUL! arg will be modified!
 	dictionary[key] = round(dictionary[key],decimals)
     return dictionary

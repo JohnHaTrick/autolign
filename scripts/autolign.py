@@ -32,11 +32,13 @@ def simLoop(guess,i,sim_mode):
     print "Steer %.2f rad and throttle %.2f N\n" % (float(del_cmd[0]),Fxr)
     del_real = del_cmd + misalign                       # apply misalignment
     state    = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
+    print 'state before learning: ',state
     if sim_mode == 'lrn':                               # if learning,
         #guess = learn.gradDescent(guess, del_cmd,
         #                          state, dt, path, i)	#   calc gradDescent
 	guess = learn.valueEst(guess, del_cmd, Fxr,
 			       state, dt, path, i)	#   or calc value estimation
+    print 'state after learning: ',state
     e = ctrl.calcLateralError(path,state)               # update storage
     dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
@@ -68,7 +70,7 @@ if __name__ == '__main__':			    #### main function ####
 						    # Params and inits:
     mode  = util.welcome(sys.argv)      	    #   choose sim or exp
     dt    = 0.01				    #   100 msec per trial
-    T     = 5					    #   [s] sim/exp term
+    T     = 6					    #   [s] sim/exp term
     n     = int(T/dt)				    #   num trials
     guess = np.array([0.0,0.0,0.0,0.0])		    #   [FL, FR, RL, RR]
     path  = ctrl.loadPath_debug()		    #   get path
@@ -87,7 +89,7 @@ if __name__ == '__main__':			    #### main function ####
         while(1): expLoop()			    # run exp loop
 
     elif mode == 'sim':                             ### Mode == sim ###
-        misalign = .5 * np.random.uniform(-1,1,4) \
+        misalign = 1 * np.random.uniform(-1,1,4) \
                      * math.pi/180		    # [rad] set true alignment
 	#misalign = .5 * np.array([ 1, 0, 0, 0 ]) \
 	#	     * math.pi/180		    # debug
