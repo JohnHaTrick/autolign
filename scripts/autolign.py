@@ -32,7 +32,7 @@ def simLoop(guess,i):
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
     print "True misalign: [%.3f,%.3f,%.3f,%.3f]\n"%(misalign[0],misalign[1],misalign[2],misalign[3])\
 	+ "Guess:         [%.3f,%.3f,%.3f,%.3f]\n"%(guess[0],guess[1],guess[2],guess[3]) 
-    time.sleep(.01)
+    #time.sleep(.01)
     return state
 
 def expLoop():
