@@ -1,6 +1,6 @@
 #!/usr/bin/env/ python
 
-from   math              import sin, cos, pi
+from   math              import sin, cos, atan2, pi
 import matplotlib.pyplot as	plt
 import random		 as	rand
 import numpy		 as     np
@@ -174,80 +174,102 @@ def gradDescent_NL(guess, delta, Fxr, s_1, dt, i):
     s_0	= memory.state_0			# unpack for this iter
     memory.state_0 = s_1		        # set state_0 for next iter
 
+    delpg = delta + guess
+
+    Ux = s_0['Ux']
+    Uy = s_0['Uy']
+    r  = s_0['r']
+
     NLSim = NonlinearSimulator()		# instantiate nonLinSim
     x1    = X1()				# X1 parameters
     Fx    = [ 0, 0, Fxr, Fxr ]			# package Fx
-    deriv = NLSim.getDerivative(s_0,Fx,delta)	# calc derivatives
+    deriv = NLSim.getDerivative(s_0,Fx,delpg)	# calc derivatives
     s_0   = dict2Vect(s_0)			# convert dictionaries
     s_1   = dict2Vect(s_1)			#   to vectors
 
+    # Fy_i =  - C_i  * alpha_i                  ### C values are negative ###
+    Fy     = []
+    # Fy_1 =  - C_1  * ( -delta_1  + atan (  Uy + ar / Ux - dr  ) )
+    Fy.append(+x1.C1 * ( -delpg[0] + atan2( Uy+x1.a*r,Ux-x1.d*r ) ) )
+    # Fy_2 =  - C_2  * ( -delta_2  + atan(   Uy + ar / Ux + dr  ) )
+    Fy.append(+x1.C2 * ( -delpg[1] + atan2( Uy+x1.a*r,Ux+x1.d*r ) ) )
+    # Fy_3 =  - C_3  * ( -delta_3  + atan(   Uy - br / Ux - dr  ) )
+    Fy.append(+x1.C3 * ( -delpg[2] + atan2( Uy-x1.b*r,Ux-x1.d*r ) ) )
+    # Fy_4 =  - C_4  * ( -delta_4  + atan(   Uy - br / Ux + dr  ) )
+    Fy.append(+x1.C4 * ( -delpg[3] + atan2( Uy-x1.b*r,Ux+x1.d*r ) ) )
+
     ddx_dd1 = np.array([  0,  0,  0,
-			(-Fx[0]*sin(delta[0])
-			 +x1.C1*sin(delta[0])
-			 +x1.C1*cos(delta[0])*delta[0])/x1.M,
-			( Fx[0]*cos(delta[0])
-			 -x1.C1*cos(delta[0])
-                         +x1.C1*sin(delta[0])*delta[0])/x1.M,
-		 ( x1.a*( Fx[0]*cos(delta[0])
-                         -x1.C1*cos(delta[0])
-                         +x1.C1*sin(delta[0])*delta[0] )
-		  +x1.d*( Fx[0]*sin(delta[0])
-                         -x1.C1*sin(delta[0])
-                         -x1.C1*cos(delta[0])*delta[0]))/x1.Iz
+			(-Fx[0]*sin(delpg[0])
+			 +x1.C1*sin(delpg[0])
+			 -Fy[0]*cos(delpg[0]) )/x1.M,
+			( Fx[0]*cos(delpg[0])
+			 -x1.C1*cos(delpg[0])
+                         -Fy[0]*sin(delpg[0]) )/x1.M,
+		 ( x1.a*( Fx[0]*cos(delpg[0])
+                         -x1.C1*cos(delpg[0])
+                         -Fy[0]*sin(delpg[0]) )
+		  +x1.d*( Fx[0]*sin(delpg[0])
+                         -x1.C1*sin(delpg[0])
+                         +Fy[0]*cos(delpg[0]) ) )/x1.Iz
 			])			# partial of dx wrt delta-1
     ddx_dd2 = np.array([  0,  0,  0,
-			(-Fx[1]*sin(delta[1])
-			 +x1.C2*sin(delta[1])
-			 +x1.C2*cos(delta[1])*delta[1])/x1.M,
-			( Fx[1]*cos(delta[1])
-			 -x1.C2*cos(delta[1])
-                         +x1.C2*sin(delta[1])*delta[1])/x1.M,
-		 ( x1.a*( Fx[1]*cos(delta[1])
-                         -x1.C2*cos(delta[1])
-                         +x1.C2*sin(delta[1])*delta[1] )
-		  -x1.d*( Fx[1]*sin(delta[1])
-                         -x1.C2*sin(delta[1])
-                         -x1.C2*cos(delta[1])*delta[1]))/x1.Iz
+			(-Fx[1]*sin(delpg[1])
+			 +x1.C2*sin(delpg[1])
+			 -Fy[1]*cos(delpg[1]) )/x1.M,
+			( Fx[1]*cos(delpg[1])
+			 -x1.C2*cos(delpg[1])
+                         -Fy[1]*sin(delpg[1]) )/x1.M,
+		 ( x1.a*( Fx[1]*cos(delpg[1])
+                         -x1.C2*cos(delpg[1])
+                         -Fy[1]*sin(delpg[1]) )
+		  -x1.d*( Fx[1]*sin(delpg[1])
+                         -x1.C2*sin(delpg[1])
+                         +Fy[1]*cos(delpg[1]) ) )/x1.Iz
 			])			# partial of dx wrt delta-2
     ddx_dd3 = np.array([  0,  0,  0,
-			(-Fx[2]*sin(delta[2])
-			 +x1.C3*sin(delta[2])
-			 +x1.C3*cos(delta[2])*delta[2])/x1.M,
-			( Fx[2]*cos(delta[2])
-			 -x1.C3*cos(delta[2])
-                         +x1.C3*sin(delta[2])*delta[2])/x1.M,
-		 (-x1.b*( Fx[2]*cos(delta[2])
-                         -x1.C3*cos(delta[2])
-                         +x1.C3*sin(delta[2])*delta[2] )
-		  +x1.d*( Fx[2]*sin(delta[2])
-                         -x1.C3*sin(delta[2])
-                         -x1.C3*cos(delta[2])*delta[2]))/x1.Iz
+			(-Fx[2]*sin(delpg[2])
+			 +x1.C3*sin(delpg[2])
+			 -Fy[2]*cos(delpg[2]) )/x1.M,
+			( Fx[2]*cos(delpg[2])
+			 -x1.C3*cos(delpg[2])
+                         -Fy[2]*sin(delpg[2]) )/x1.M,
+		 (-x1.b*( Fx[2]*cos(delpg[2])
+                         -x1.C3*cos(delpg[2])
+                         -Fy[2]*sin(delpg[2]) )
+		  +x1.d*( Fx[2]*sin(delpg[2])
+                         -x1.C3*sin(delpg[2])
+                         +Fy[2]*cos(delpg[2]) ) )/x1.Iz
 			])			# partial of dx wrt delta-3
     ddx_dd4 = np.array([  0,  0,  0,
-			(-Fx[3]*sin(delta[3])
-			 +x1.C4*sin(delta[3])
-			 +x1.C4*cos(delta[3])*delta[3])/x1.M,
-			( Fx[3]*cos(delta[3])
-			 -x1.C4*cos(delta[3])
-                         +x1.C4*sin(delta[3])*delta[3])/x1.M,
-		 (-x1.b*( Fx[3]*cos(delta[3])
-                         -x1.C4*cos(delta[3])
-                         +x1.C4*sin(delta[3])*delta[3] )
-		  -x1.d*( Fx[3]*sin(delta[3])
-                         -x1.C4*sin(delta[3])
-                         -x1.C4*cos(delta[3])*delta[3]))/x1.Iz
+			(-Fx[3]*sin(delpg[3])
+			 +x1.C4*sin(delpg[3])
+			 -Fy[3]*cos(delpg[3]) )/x1.M,
+			( Fx[3]*cos(delpg[3])
+			 -x1.C4*cos(delpg[3])
+                         -Fy[3]*sin(delpg[3]) )/x1.M,
+		 (-x1.b*( Fx[3]*cos(delpg[3])
+                         -x1.C4*cos(delpg[3])
+                         -Fy[3]*sin(delpg[3]) )
+		  -x1.d*( Fx[3]*sin(delpg[3])
+                         -x1.C4*sin(delpg[3])
+                         +Fy[3]*cos(delpg[3]) ) )/x1.Iz
 			])			# partial of dx wrt delta-4
+
     ddx_dd  = np.vstack([ddx_dd1,ddx_dd2,ddx_dd3,ddx_dd4])
 
     # Update rule: guess = guess - eta*grad(J)
     eta = 1/np.sqrt(i)				# learning rate
+    
     '''
+    print 'ddx_dd shape = ',ddx_dd.T.shape
+    print 'ddx_dd = ',ddx_dd.T
     print '\n\nguess = \n',guess
     print 'eta = ',eta
     print 'dt = ',dt
     print 'ved_diff = ',vec_add([s_1,-s_0,-dt*deriv])
     print 'ddx_dd = ',ddx_dd
     '''
+    
     guess = guess + 2 * eta * dt * vec_add([s_1,-s_0,-dt*deriv]) * ( ddx_dd.T )
     return guess.tolist()[0]
 

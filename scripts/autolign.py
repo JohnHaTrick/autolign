@@ -87,8 +87,7 @@ if __name__ == '__main__':			    #### main function ####
     elif mode == 'sim':                             ### Mode == sim ###
         misalign = 1 * np.random.uniform(-1,1,4) \
                      * math.pi/180		    # [rad] set true alignment
-	#misalign = .5 * np.array([ 1, 0, 0, 0 ]) \
-	#	     * math.pi/180		    # debug
+	#misalign = np.array([1,0,0,0])*math.pi/180  # debug
         state_0 = {'E'  : path['E']+0, # error?
 		   'N'  : path['N']+0, # error?
 		   'psi': path['psi'],
@@ -102,7 +101,7 @@ if __name__ == '__main__':			    #### main function ####
         for i in range(1,n+1):                      # n learning iterations
             guess = simLoop(guess,i,'lrn')          # sim loop : learning mode
 	
-                                                    ## Validation Trials ##
+	                                            ## Validation Trials ##
 	NLsim.setState(state_0)			    # Reset sim state
 	ctrl.Integrator.i = 0			    # Reset ctrl integrator
 	for j in range(1,n+1):                          # n validation iterations

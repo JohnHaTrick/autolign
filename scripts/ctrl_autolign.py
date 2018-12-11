@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy        as     np
+import time
 from   sim_autolign import ackermann
 
 def pathTrackingCmds(path,state):
@@ -20,6 +21,9 @@ def lookAheadCtrl(path,state):
     del_FB  = -k_p * e_LA			# [rad]   FB (no sideslip)
     del_FFW =  4*path['k'] - 0 + 0		# [rad]   FFW (not implemented)
     del_f   =  del_FFW + del_FB
+
+    del_f  += .2*np.sin(40*time.clock())
+
     if del_f > del_max:	   del_f = del_max      # assert maximum steering angle
     elif del_f < -del_max: del_f = -del_max
     del_r   =  0
