@@ -35,9 +35,6 @@ class Plotter:
         else:   
             self.misalign = np.array(state['misalign'])            
 
-
-
-
     def plot(self):
         plt.subplot(611)
         plt.plot(self.E,self.N)
@@ -71,19 +68,17 @@ class Plotter:
 
         plt.figure()
         #plt.subplot(616)
-        plt.plot(self.guess[:,0]/np.pi*180.0,label='GuessFL')
-        plt.plot(self.guess[:,1]/np.pi*180.0,label='GuessFR')
-        plt.plot(self.guess[:,2]/np.pi*180.0,label='GuessRL')
-        plt.plot(self.guess[:,3]/np.pi*180.0,label='GuessRR')
-        plt.plot(self.misalign[:,0]/np.pi*180.0,label='MisFL')
-        plt.plot(self.misalign[:,1]/np.pi*180.0,label='MisFR')
-        plt.plot(self.misalign[:,2]/np.pi*180.0,label='MisRL')
-        plt.plot(self.misalign[:,3]/np.pi*180.0,label='MisRR')
+        plt.plot(self.guess[:,0]/np.pi*180.0,label='GuessFL',color='blue')
+        plt.plot(self.guess[:,1]/np.pi*180.0,label='GuessFR',color='purple')
+        plt.plot(self.guess[:,2]/np.pi*180.0,label='GuessRL',color='red')
+        plt.plot(self.guess[:,3]/np.pi*180.0,label='GuessRR',color='green')
+        plt.plot(self.misalign[:,0]/np.pi*180.0,label='MisFL',color='blue',  linestyle='dashed')
+        plt.plot(self.misalign[:,1]/np.pi*180.0,label='MisFR',color='purple',linestyle='dashed')
+        plt.plot(self.misalign[:,2]/np.pi*180.0,label='MisRL',color='red',   linestyle='dashed')
+        plt.plot(self.misalign[:,3]/np.pi*180.0,label='MisRR',color='green', linestyle='dashed')
         plt.ylabel('Guess/ Align [deg]')
         plt.legend()
         plt.grid()
-        
                 
         #plt.tight_layout()
-        plt.show()
-	#plt.draw()        
+        plt.show()        
