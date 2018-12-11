@@ -65,6 +65,78 @@ class NonlinearSimulator:
         self.fx = fx
         self.delta_fr = delta_fr
 
+    def getDerivative(self, state, fx, delta):
+        [delta1, delta2, delta3, delta4] = delta
+        [fx1, fx2, fx3, fx4]             = fx
+        
+        psi   = state['psi']
+        vx    = state['Ux' ]
+        vy    = state['Uy' ]
+        r     = state['r'  ]
+
+        # Calc forces to each tire
+        fy1 = X1.C1 * (-delta1 + np.arctan2(vy + X1.a * r,
+                                            vx - X1.d * r))
+        fy2 = X1.C2 * (-delta2 + np.arctan2(vy + X1.a * r,
+                                            vx + X1.d * r))
+        fy3 = X1.C3 * (-delta3 + np.arctan2(vy - X1.b * r,
+                                            vx - X1.d * r))
+        fy4 = X1.C4 * (-delta4 + np.arctan2(vy - X1.b * r,
+                                            vx + X1.d * r))
+        fy = (fy1,fy2,fy3,fy4)
+        
+        f1cx = fx1 * np.cos(delta1) - fy1 * np.sin(delta1)
+        f2cx = fx2 * np.cos(delta2) - fy2 * np.sin(delta2)
+        f3cx = fx3 * np.cos(delta3) - fy3 * np.sin(delta3)
+        f4cx = fx4 * np.cos(delta4) - fy4 * np.sin(delta4)
+        f1cy = fx1 * np.sin(delta1) + fy1 * np.cos(delta1)
+        f2cy = fx2 * np.sin(delta2) + fy2 * np.cos(delta2)
+        f3cy = fx3 * np.sin(delta3) + fy3 * np.cos(delta3)
+        f4cy = fx4 * np.sin(delta4) + fy4 * np.cos(delta4)
+        sigma1 = f1cx + f2cx + f3cx + f4cx
+        sigma2 = f1cy + f2cy + f3cy + f4cy
+
+        psidot =  r
+        edot   = -vy * np.cos(psi) - vx * np.sin(psi)
+        ndot   =  vx * np.cos(psi) - vy * np.sin(psi)
+        vxdot  =  r  * vy + 1 / X1.M * sigma1
+        vydot  = -r  * vx + 1 / X1.M * sigma2
+        rdot   =  1/X1.Iz * ( X1.d  * ( - f1cx + f2cx - f3cx + f4cx )
+                            + X1.a  * (   f1cy + f2cy               )
+                - X1.b  * (   f3cy + f4cy               ) )
+        return np.matrix(edot, ndot, psidot, vxdot, vydot, rdot)
+
+# # NOT IMPLEMENTED YET
+#     def simulate_dt2(self):
+
+#         # propogate self.state forward by one (small) dt
+#         #   Not the same as the (larger) autolignment dt
+
+#         # Calc ackermann steer angle of 4 wheels, in case of bicycle commands
+#         # self.delta_4ws = ackermann(self.del_fr, self.del_fr, self.d, self.l)
+
+#         temp_state_0 = {'psi':self.psi, 'Ux':self.vx, 'Uy':self.vy, 'r':self.r}
+
+#         deriv = self.getDerivative(temp_state_0, self.fx, self.delta_4ws)
+
+#         oldstate = np.matrix(self.east, self.north, self.psi, \
+#                              self.vx, self.vy, self.r)
+#         newstate = oldstate + deriv * self.dt
+#         self.east  = newstate.getitem(0)
+#         self.north = newstate.getitem(1)
+#         self.psi   = newstate.getitem(2)
+#         self.vx    = newstate.getitem(3)
+#         self.vy    = newstate.getitem(4)
+#         self.r     = newstate.getitem(5)
+
+#         self.setStateValue( self.psi_n, self.east_n, self.north_n,
+#                             self.r_n,   self.vx_n,   self.vy_n     )
+
+#         # return next state
+#         return [ self.psi_n, self.east_n, self.north_n, 
+#                  self.r_n,   self.vx_n,   self.vy_n,     ]
+
+
     def simulate_dt(self):
         # propogate self.state forward by one (small) dt
         #   Not the same as the (larger) autolignment dt
