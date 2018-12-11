@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import numpy as np
+import numpy         as np
 import ctrl_autolign as ctrl
 
 # sim_autolign provides simulation models and parameters for X1
@@ -96,15 +96,15 @@ class NonlinearSimulator:
         sigma1 = f1cx + f2cx + f3cx + f4cx
         sigma2 = f1cy + f2cy + f3cy + f4cy
 
-        psidot =  r
-        edot   = -vy * np.cos(psi) - vx * np.sin(psi)
-        ndot   =  vx * np.cos(psi) - vy * np.sin(psi)
-        vxdot  =  r  * vy + 1 / X1.M * sigma1
-        vydot  = -r  * vx + 1 / X1.M * sigma2
-        rdot   =  1/X1.Iz * ( X1.d  * ( - f1cx + f2cx - f3cx + f4cx )
-                            + X1.a  * (   f1cy + f2cy               )
-                - X1.b  * (   f3cy + f4cy               ) )
-        return np.matrix(edot, ndot, psidot, vxdot, vydot, rdot)
+        psidot =   r
+        edot   =  -vy * np.cos(psi) - vx * np.sin(psi)
+        ndot   =   vx * np.cos(psi) - vy * np.sin(psi)
+        vxdot  =   r  * vy + sigma1 / X1.M
+        vydot  =  -r  * vx + sigma2 / X1.M
+        rdot   = ( X1.d  * ( - f1cx + f2cx - f3cx + f4cx )
+                 + X1.a  * (   f1cy + f2cy               )
+                 - X1.b  * (   f3cy + f4cy               ) ) / X1.Iz
+        return np.matrix([ edot, ndot, psidot, vxdot, vydot, rdot ])
 
 # # NOT IMPLEMENTED YET
 #     def simulate_dt2(self):

@@ -30,9 +30,11 @@ def simLoop(guess,i,sim_mode):
     state        = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
     if sim_mode == 'lrn':                               # if learning,
         #guess    = learn.gradDescent(guess,del_cmd,
-        #                             state,dt,path,i)	#   calc gradDescent
-	guess    = learn.valueEst(guess,del_cmd,Fxr,
-			          state,dt,path,i)	#   or calc value estimation
+        #                             state,dt,path,i)	#   linear gradDescent
+        guess    = learn.gradDescent_NL(guess,del_cmd,
+					Fxr,state,dt,i)	#   nonlinear gradDescent
+	#guess    = learn.valueEst(guess,del_cmd,Fxr,
+	#		          state,dt,path,i)	#   value estimation
     e = ctrl.calcLateralError(path,state)               # update storage
     dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)

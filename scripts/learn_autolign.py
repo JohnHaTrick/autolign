@@ -1,12 +1,13 @@
 #!/usr/bin/env/ python
 
-import math
-import matplotlib.pyplot as plt
-import random        as     rand
-import numpy         as     np
-from   copy          import deepcopy
-import ctrl_autolign as     ctrl
-from   sim_autolign  import X1, NonlinearSimulator_2, LinearSimulator
+from   math              import sin, cos, pi
+import matplotlib.pyplot as	plt
+import random		 as	rand
+import numpy		 as     np
+from   copy		 import deepcopy
+import ctrl_autolign	 as     ctrl
+from   sim_autolign	 import NonlinearSimulator,   X1, \
+				NonlinearSimulator_2, LinearSimulator
 
 def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     # 1: update random guess_values according to the
@@ -17,7 +18,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 
     # Parameters
     num_bins       = 17			#   Total number of discrete guess bins
-    max_angle      = 2 * math.pi / 180	#   [rad] Check consistency w max misalign
+    max_angle      = 2 * pi / 180	#   [rad] Check consistency w max misalign
 
     ## 1:
     if not memory.values:			# First iter -> initialize params & values:
@@ -58,6 +59,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     '''
     print 'state 1        : ',roundDict(deepcopy(state_1)      ,3)
     print 'state 1 w guess: ',roundDict(deepcopy(state_1_model),3)
+
     '''
 
     value = -calcCost(state_1,state_1_model)
@@ -113,7 +115,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	x_rad = []
 	for angle in sorted(values[1].keys()):
 	    x_rad.append(angle)
-	    x_deg.append(angle*180/math.pi)
+	    x_deg.append(angle*180/pi)
 
 	y = []
 	for i in range(len(x_rad)):
@@ -142,7 +144,7 @@ def calcCost(s_1,s_2):		# calculate positive-valued cost
     return cost
 
 def gradDescent(guess,delta,state_1,dt,path,i):
-    # minimize cost function (x_1_meas - x_1_model)^2
+    # minimize cost function J = (x_1_meas - x_1_model)^2
     #   using linear model with states [ e dPsi Uy r ]
 
     if not memory.state_0:		        # First iteration?
@@ -152,7 +154,7 @@ def gradDescent(guess,delta,state_1,dt,path,i):
     memory.state_0 = state_1		        # set state_0 for next iter
     
     LinSim = LinearSimulator()		        # Init linear simulator
-    s_0    = LinSim.getLocalState(state_0,path) # Local states to path
+    s_0    = LinSim.getLocalState(state_0,path) # Local states to path (vector)
     s_1    = LinSim.getLocalState(state_1,path)
     Ux     = state_0['Ux']		        # speed (assumed const)
 
@@ -162,7 +164,94 @@ def gradDescent(guess,delta,state_1,dt,path,i):
     guess = guess + 2 * eta * dt * ( s_1 - s_1_linModel ) * B_matrix
     return guess.tolist()[0]
 
+def gradDescent_NL(guess, delta, Fxr, s_1, dt, i):
+    # minimize cost function J = (x_1_meas - x_1_model)^2
+    #   using nonlinear model with states [ E N Psi Ux Uy r ]
 
+    if not memory.state_0:		        # First iteration?
+	memory.state_0 = s_1		        #   save for next time
+	return guess                            #   no GD on 1st iter
+    s_0	= memory.state_0			# unpack for this iter
+    memory.state_0 = s_1		        # set state_0 for next iter
+
+    NLSim = NonlinearSimulator()		# instantiate nonLinSim
+    x1    = X1()				# X1 parameters
+    Fx    = [ 0, 0, Fxr, Fxr ]			# package Fx
+    deriv = NLSim.getDerivative(s_0,Fx,delta)	# calc derivatives
+    s_0   = dict2Vect(s_0)			# convert dictionaries
+    s_1   = dict2Vect(s_1)			#   to vectors
+
+    ddx_dd1 = np.array([  0,  0,  0,
+			(-Fx[0]*sin(delta[0])
+			 +x1.C1*sin(delta[0])
+			 +x1.C1*cos(delta[0])*delta[0])/x1.M,
+			( Fx[0]*cos(delta[0])
+			 -x1.C1*cos(delta[0])
+                         +x1.C1*sin(delta[0])*delta[0])/x1.M,
+		 ( x1.a*( Fx[0]*cos(delta[0])
+                         -x1.C1*cos(delta[0])
+                         +x1.C1*sin(delta[0])*delta[0] )
+		  +x1.d*( Fx[0]*sin(delta[0])
+                         -x1.C1*sin(delta[0])
+                         -x1.C1*cos(delta[0])*delta[0]))/x1.Iz
+			])			# partial of dx wrt delta-1
+    ddx_dd2 = np.array([  0,  0,  0,
+			(-Fx[1]*sin(delta[1])
+			 +x1.C2*sin(delta[1])
+			 +x1.C2*cos(delta[1])*delta[1])/x1.M,
+			( Fx[1]*cos(delta[1])
+			 -x1.C2*cos(delta[1])
+                         +x1.C2*sin(delta[1])*delta[1])/x1.M,
+		 ( x1.a*( Fx[1]*cos(delta[1])
+                         -x1.C2*cos(delta[1])
+                         +x1.C2*sin(delta[1])*delta[1] )
+		  -x1.d*( Fx[1]*sin(delta[1])
+                         -x1.C2*sin(delta[1])
+                         -x1.C2*cos(delta[1])*delta[1]))/x1.Iz
+			])			# partial of dx wrt delta-2
+    ddx_dd3 = np.array([  0,  0,  0,
+			(-Fx[2]*sin(delta[2])
+			 +x1.C3*sin(delta[2])
+			 +x1.C3*cos(delta[2])*delta[2])/x1.M,
+			( Fx[2]*cos(delta[2])
+			 -x1.C3*cos(delta[2])
+                         +x1.C3*sin(delta[2])*delta[2])/x1.M,
+		 (-x1.b*( Fx[2]*cos(delta[2])
+                         -x1.C3*cos(delta[2])
+                         +x1.C3*sin(delta[2])*delta[2] )
+		  +x1.d*( Fx[2]*sin(delta[2])
+                         -x1.C3*sin(delta[2])
+                         -x1.C3*cos(delta[2])*delta[2]))/x1.Iz
+			])			# partial of dx wrt delta-3
+    ddx_dd4 = np.array([  0,  0,  0,
+			(-Fx[3]*sin(delta[3])
+			 +x1.C4*sin(delta[3])
+			 +x1.C4*cos(delta[3])*delta[3])/x1.M,
+			( Fx[3]*cos(delta[3])
+			 -x1.C4*cos(delta[3])
+                         +x1.C4*sin(delta[3])*delta[3])/x1.M,
+		 (-x1.b*( Fx[3]*cos(delta[3])
+                         -x1.C4*cos(delta[3])
+                         +x1.C4*sin(delta[3])*delta[3] )
+		  -x1.d*( Fx[3]*sin(delta[3])
+                         -x1.C4*sin(delta[3])
+                         -x1.C4*cos(delta[3])*delta[3]))/x1.Iz
+			])			# partial of dx wrt delta-4
+    ddx_dd  = np.vstack([ddx_dd1,ddx_dd2,ddx_dd3,ddx_dd4])
+
+    # Update rule: guess = guess - eta*grad(J)
+    eta = 1/np.sqrt(i)				# learning rate
+    '''
+    print '\n\nguess = \n',guess
+    print 'eta = ',eta
+    print 'dt = ',dt
+    print 'ved_diff = ',vec_add([s_1,-s_0,-dt*deriv])
+    print 'ddx_dd = ',ddx_dd
+    '''
+    guess = guess + 2 * eta * dt * vec_add([s_1,-s_0,-dt*deriv]) * ( ddx_dd.T )
+    return guess.tolist()[0]
+
+## HELPER FUNCTIONS ##
 class memory(object):
     state_0 = dict()				# save last state here
     values  = dict()				# save value list here [ 4 x num_bins ]
@@ -171,3 +260,14 @@ def roundDict(dictionary,decimals):		# Round each value in the dict
     for key in dictionary.keys():		#   CAREFUL! arg will be modified!
 	dictionary[key] = round(dictionary[key],decimals)
     return dictionary
+
+def dict2Vect(s_dict):				# [ E N Psi Ux Uy r ]
+    return np.array([s_dict['E'], s_dict['N'], s_dict['psi'],
+		     s_dict['Ux'],s_dict['Uy'],s_dict['r']   ])
+
+def vec_add(vec_list):
+    vec_sum = vec_list[0]
+    for vec in vec_list[1:]:
+	vec_sum = np.add(vec,vec_sum)
+    return vec_sum
+
