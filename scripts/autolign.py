@@ -18,31 +18,25 @@ except:
 #   README to get started
 
 def simLoop(guess,i,sim_mode):
-    state    = NLsim.getState()				# current state
-    e        = ctrl.calcLateralError(path,state)
-    v        = state['Ux']
-    print "i: ",i," E: "  ,round(state['E'],2)  ," N: " ,round(state['N'],2), \
-                  " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
-                  " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
-    del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    #del_cmd += .2 * np.sin( i / 10 )
+    state        = NLsim.getState()			# current state
+    print "i: ",i," E: "  ,round(state['E'],3)  ," N: " ,round(state['N'],3), \
+                  " Psi: ",round(state['psi'],3)," Ux: ",round(state['Ux'],3),\
+                  " Uy: " ,round(state['Uy'],3) ," r: " ,round(state['r'],3)
+    del_cmd, Fxr = ctrl.pathTrackingCmds(path,state)    # calc steer & throttle cmds
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
-    Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
-    print "Steer %.2f rad and throttle %.2f N\n" % (float(del_cmd[0]),Fxr)
-    del_real = del_cmd + misalign                       # apply misalignment
-    state    = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
-    print 'state before learning: ',state
+    print "Steer %.2f rad and throttle %.2f N" % (float(del_cmd[0]),Fxr)
+    del_real     = del_cmd + misalign                   # apply misalignment
+    state        = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
     if sim_mode == 'lrn':                               # if learning,
-        #guess = learn.gradDescent(guess, del_cmd,
-        #                          state, dt, path, i)	#   calc gradDescent
-	guess = learn.valueEst(guess, del_cmd, Fxr,
-			       state, dt, path, i)	#   or calc value estimation
-    print 'state after learning: ',state
+        #guess    = learn.gradDescent(guess,del_cmd,
+        #                             state,dt,path,i)	#   calc gradDescent
+	guess    = learn.valueEst(guess,del_cmd,Fxr,
+			          state,dt,path,i)	#   or calc value estimation
     e = ctrl.calcLateralError(path,state)               # update storage
     dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
-    print "\nTru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
+    print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
         % (misalign[0],misalign[1],misalign[2],misalign[3]) \
 	+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n\n"              \
         % (guess[0],guess[1],guess[2],guess[3])         # status update
@@ -51,7 +45,7 @@ def simLoop(guess,i,sim_mode):
                                  'guess1':guess[0],  'guess2':guess[1] ,
                                  'guess3':guess[2],  'guess4':guess[3] ,
                                  'delta':del_cmd[0], 'Fxr':Fxr         ,
-                                 'e':e,              'v':v             },
+                                 'e':e,              'v':state['Ux']    },
                       order=ordered )                   # write data
     state.update(t=dt*i)                                # add time to dict
     plotter.store(state)                                # store for plotting

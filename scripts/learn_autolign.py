@@ -45,27 +45,23 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     guess_rand[wheel-1] = wheel_rand			# keep the others as best guess so far
 
     '''
-    guess_rand = rand.sample( values[1].keys(), 4 )	# get 4 random guesses for learning
-    #guess_rand = np.array([0,0,0,0])
-    #guess_rand[1] = 0
-    guess_rand[2] = 0
-    guess_rand[3] = 0
-    '''
-
     print 'wheel value keys: ', [ round(e,3) for e in sorted(values[wheel].keys()) ]
     print 'choosing %.3f rad for wheel # %i' % (wheel_rand,wheel)
     print 'guesses for this iteration: 1: %.3f, 2: %.3f, 3: %.3f, 4: %.3f' \
 	  % (guess_rand[0],guess_rand[1],guess_rand[2],guess_rand[3])
+    '''
 
     NLSim = NonlinearSimulator_2()			# calc next state w rand guess
     delta_rand = np.array(delta) + np.array(guess_rand)
     state_1_model = NLSim.simulate_T( state_0, delta_rand, Fxr, dt )		
 
+    '''
     print 'state 1        : ',roundDict(deepcopy(state_1)      ,3)
     print 'state 1 w guess: ',roundDict(deepcopy(state_1_model),3)
+    '''
 
     value = -calcCost(state_1,state_1_model)
-    print 'value = ',value
+    #print 'value = ',value
 
     #for i in range(4):
     values[wheel][guess_rand[wheel-1]].append( value )
@@ -81,8 +77,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	    each_angle_tried = 0
     if each_angle_tried:
 
-	print 'all angles have been tried; now try to find optimal'
-
+	#print 'all angles have been tried; now try to find optimal'
 	
 	PHI = np.empty((1,3),float)
 	for angle in sorted(values[wheel].keys()):
@@ -95,7 +90,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	for angle in sorted(values[wheel].keys()):
 	    v.append( np.mean( values[wheel][angle] ) )
 	v = np.array(v)
-	print 'average values: ',v
+	#print 'average values: ',v
 	
 	w = np.linalg.lstsq(PHI,v)[0]
 	#print 'w = ',w_1
@@ -105,7 +100,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	guess_wheel = min(guess_wheel, max_angle)
 	guess_wheel = max(guess_wheel,-max_angle)
 
-	print 'updated guess = ',guess_wheel
+	#print 'updated guess = ',guess_wheel
 	guess[wheel-1] = guess_wheel
  
     else:
