@@ -6,7 +6,7 @@ import random            as     rand
 import numpy             as     np
 from   copy              import deepcopy
 import ctrl_autolign     as     ctrl
-from   sim_autolign      import X1, NonlinearSimulator_2, LinearSimulator
+from   sim_autolign      import X1, NonlinearSimulator_2, LinearSimulator, steeringCurrent
 
 def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     # 1: update random guess_values according to the
@@ -161,9 +161,9 @@ def valueSearch(guess, delta, Fxr, state_1, dt, iteration, current_real):
 	s_1_model = NLSim.simulate_T( state_0, delta_try, Fxr, dt )
 	value     = -calcCost(state_1,s_1_model)#   calculate cost
 
-	current_try  = sim.steeringCurrent(delta_try)      # add current term to cost
+	current_try  = steeringCurrent(delta_try)      # add current term to cost
 	current_diff = np.add(current_real,-1*current_try)
-	value       -= np.power(np.sum(current_diff),2)
+	value       -= np.linalg.norm(current_diff,2)
 
 	#print 'bins = ',roundTupl(guess_try,4),' value value: ',round(value,6)
 	if value > best_value:

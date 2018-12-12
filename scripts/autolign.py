@@ -24,7 +24,7 @@ def simLoop(guess,i,sim_mode):
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    del_cmd += .2 * np.sin( i / 10.0 )
+    #del_cmd += .2 * np.sin( i / 10.0 )
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
     Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
