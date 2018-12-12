@@ -42,7 +42,7 @@ def simLoop(guess,i,sim_mode):
     e = ctrl.calcLateralError(path,state)               # update storage
     dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
-    print "\nTru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
+    print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
         % (misalign[0],misalign[1],misalign[2],misalign[3]) \
 	+ "Guess:   [%.3f,%.3f,%.3f,%.3f]\n\n"              \
         % (guess[0],guess[1],guess[2],guess[3])         # status update

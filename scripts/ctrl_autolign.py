@@ -3,6 +3,11 @@
 import numpy        as     np
 from   sim_autolign import ackermann
 
+def pathTrackingCmds(path,state):
+    delta = lookAheadCtrl(path,state)
+    Fxr   = PI_Ctrl(path,state)
+    return  delta, Fxr
+
 def lookAheadCtrl(path,state):
     # Kapania & Gerdes. Autonomous Lanekeeping Sys for Path Tracking. AVEC. 2014
     del_max = .3
@@ -11,7 +16,7 @@ def lookAheadCtrl(path,state):
     e       =  calcLateralError(path,state)	# [m]     current lateral error
     dPsi    =  calcHeadingError(path,state)     # [rad]   heading error
     e_LA    =  e + x_LA * dPsi			# [m]     look ahead error
-    print "e: ",round(e,2)," e_LA: ",round(e_LA,2)," dPsi: ",round(dPsi,2)
+    #print "e: ",round(e,2)," e_LA: ",round(e_LA,2)," dPsi: ",round(dPsi,2)
     del_FB  = -k_p * e_LA			# [rad]   FB (no sideslip)
     del_FFW =  4*path['k'] - 0 + 0		# [rad]   FFW (not implemented)
     del_f   =  del_FFW + del_FB

@@ -49,7 +49,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
     state_1_model = NLSim.simulate_T( state_0, delta_rand, Fxr, dt )		
 
     value = -calcCost(state_1,state_1_model)
-    print 'value = ',value
+    #print 'value = ',value
 
     #for i in range(4):
     values[wheel][guess_rand[wheel-1]].append( value )
@@ -84,7 +84,7 @@ def valueEst(guess, delta, Fxr, state_1, dt, path, iteration):
 	guess_wheel = min(guess_wheel, max_angle)
 	guess_wheel = max(guess_wheel,-max_angle)
 
-	print 'updated guess = ',guess_wheel
+	#print 'updated guess = ',guess_wheel
 	guess[wheel-1] = guess_wheel
  
     else:

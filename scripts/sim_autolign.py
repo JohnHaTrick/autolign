@@ -160,6 +160,10 @@ class NonlinearSimulator:
                  'r'    : self.r       }        # [rad/s] yawrate
         return state
 
+    def steeringCurrent(self, delta_4ws):
+        k = 0.1                             # constant of proportion
+        return k * np.array(delta_4ws)
+
 class NonlinearSimulator_2:
     """ High Fidelity 4 Wheel Vehicle Simulation Class """
     # Receives state_0 and doesn't mess with statically saved memory
