@@ -129,7 +129,7 @@ def valueSearch(guess, delta, Fxr, state_1, dt, iteration, current_real):
     if not memory.state_0:			# First iter -> initialize params & values:
 	print 'No value search for 1st iteration'
 	memory.state_0 = state_1		#   save state for next time
-	memory.window  = 10*pi/180		#   search field either side
+	memory.window  = 5*pi/180		#   search field either side
 	return guess				#   First iter done, no learning
     state_0        = memory.state_0
     memory.state_0 = state_1			# set state_0 for next iter
@@ -139,15 +139,21 @@ def valueSearch(guess, delta, Fxr, state_1, dt, iteration, current_real):
     # 1. Setup:
     guesses = dict()				# what angles are we dealing with?
     for i in range(bins):			# FR
-      angle_1 = i * (2*window/(bins-1)) - window + guess[0]
+      #angle_1 = i * (2*window/(bins-1)) - window + guess[0]
+      angle_1 = window*np.power(2.0/(bins-1),3)*np.power(i+(1-bins)/2.0,3)+guess[0]
       for j in range(bins):			# FL
-	angle_2 = j * (2*window/(bins-1)) - window + guess[1]
+	#angle_2 = j * (2*window/(bins-1)) - window + guess[1]
+        angle_2 = window*np.power(2.0/(bins-1),3)*np.power(j+(1-bins)/2.0,3)+guess[1]
 	for k in range(bins):			# RR
-	  angle_3 = k * (2*window/(bins-1)) - window + guess[2]
+	  #angle_3 = k * (2*window/(bins-1)) - window + guess[2]
+          angle_3 = window*np.power(2.0/(bins-1),3)*np.power(k+(1-bins)/2.0,3)+guess[2]
 	  for l in range(bins):			# RL
-	    angle_4 = l * (2*window/(bins-1)) - window + guess[3]
+	    #angle_4 = l * (2*window/(bins-1)) - window + guess[3]
+            angle_4 = window*np.power(2.0/(bins-1),3)*np.power(l+(1-bins)/2.0,3)+guess[3]
 
-	    guesses[(i,j,k,l)] = (angle_1,angle_2,angle_3,angle_4)		    
+	    guesses[(i,j,k,l)] = (angle_1,angle_2,angle_3,angle_4)
+	    #guesses[(i+bins,j+bins,k+bins,l+bins)] = (angle_2,angle_1,angle_4,angle_3)
+	    		    
 	    #print 'guesses for ',(i,j,k,l),' are ',roundTupl((angle_1,angle_2,angle_3,angle_4),4) 
 
     # 2. Search
@@ -160,10 +166,12 @@ def valueSearch(guess, delta, Fxr, state_1, dt, iteration, current_real):
                   + np.array(guess_try)		#   add to commanded delta and simulate
 	s_1_model = NLSim.simulate_T( state_0, delta_try, Fxr, dt )
 	value     = -calcCost(state_1,s_1_model)#   calculate cost
-
+	'''
 	current_try  = steeringCurrent(delta_try)      # add current term to cost
 	current_diff = np.add(current_real,-1*current_try)
 	value       -= np.linalg.norm(current_diff,2)
+	'''
+	#value -= np.abs(np.sum(guess_try))
 
 	#print 'bins = ',roundTupl(guess_try,4),' value value: ',round(value,6)
 	if value > best_value:
@@ -185,22 +193,22 @@ def valueSearch(guess, delta, Fxr, state_1, dt, iteration, current_real):
     print 'value for nearest guess of ',nearest_guess,' = ',nearest_value
     '''
 
-    memory.window = window * 0.98		# decrease window size
+    memory.window = window * 0.99		# decrease window size
     return list(best_guess)			# return new best guess
 
 def calcCost(s_1,s_2):		# calculate positive-valued cost
 				#    between full-states
     weight        = dict()
-    weight['E']   = 10	    	# state variable weights
-    weight['N']   = 10	
-    weight['psi'] = 10
-    weight['r']   = 10
+    weight['E']   = 0	    	# state variable weights
+    weight['N']   = 0	
+    weight['psi'] = 0
+    weight['r']   = 1
     weight['Ux']  = 1
-    weight['Uy']  = 10
+    weight['Uy']  = 1
 
     cost = 0
     for key in weight.keys():	# sum of squares
-	cost += np.power( (s_1[key] - s_2[key]) * weight[key] ,2 )
+	cost += np.power( (s_1[key] - s_2[key]) , 2 ) * weight[key]
     return cost
 
 def gradDescent(guess,delta,state_1,dt,path,i):

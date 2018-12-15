@@ -18,20 +18,29 @@ except:
 # High-level script for the automatic alignment of X1's wheels
 #   README to get started
 
+class saveErrors(object):
+    cum_ve_learn = 0
+    cum_ee_learn = 0
+    cum_ve_val   = 0
+    cum_ee_val   = 0
+
 def simLoop(guess,i,sim_mode):
     state    = NLsim.getState()				# current state
     print "i: ",i," E: "  ,round(state['E'],2)  ," N: " ,round(state['N'],2), \
                   " Psi: ",round(state['psi'],2)," Ux: ",round(state['Ux'],2),\
                   " Uy: " ,round(state['Uy'],2) ," r: " ,round(state['r'],2)
     del_cmd  = ctrl.lookAheadCtrl(path,state)	        # calc steer cmds
-    #del_cmd += .2 * np.sin( i / 10.0 )
     if sim_mode == 'val':                               # if validtating,
         del_cmd -= guess      	                        #   apply guess
+    elif sim_mode == 'lrn':
+	del_cmd += .2 * np.sin( i / 10.0 )
     Fxr      = ctrl.PI_Ctrl(path,state)			# calculate Fx cmd
     print "Steer %.2f rad and throttle %.2f N\n" % (float(del_cmd[0]),Fxr)
     del_real = del_cmd + misalign                       # apply misalignment
     state    = NLsim.simulate_T(del_real, Fxr, dt)	# simulate cmds
     current  = sim.steeringCurrent(del_real)
+    e        = ctrl.calcLateralError(path,state)        # update storage
+    dPsi     = ctrl.calcHeadingError(path,state)        #   for plotting
     if sim_mode == 'lrn':                               # if learning,
         #guess = learn.gradDescent(guess, del_cmd,
         #                          state, dt, path, i)	#   calc gradDescent
@@ -39,8 +48,13 @@ def simLoop(guess,i,sim_mode):
 	#		       state, dt, path, i)	#   or calc value estimation
 	guess = learn.valueSearch(guess, del_cmd, Fxr,
 			          state, dt, i, current)#   or calc value estimation
-    e = ctrl.calcLateralError(path,state)               # update storage
-    dPsi = ctrl.calcHeadingError(path,state)            #   for plotting
+    if sim_mode == 'pre':
+	saveErrors.cum_ve_learn += 4 - state['Ux']
+	saveErrors.cum_ee_learn += e
+    elif sim_mode == 'val':
+	saveErrors.cum_ve_val   += 4 - state['Ux']
+	saveErrors.cum_ee_val   += e
+	
     state.update(delta=del_cmd, guess=guess, misalign=misalign, e=e, dPsi=dPsi)
     print "Tru mis: [%.3f,%.3f,%.3f,%.3f]\n"                \
         % (misalign[0],misalign[1],misalign[2],misalign[3]) \
@@ -70,11 +84,12 @@ if __name__ == '__main__':			    #### main function ####
 						    # Params and inits:
     mode  = util.welcome(sys.argv)      	    #   choose sim or exp
     dt    = 0.01				    #   100 msec per trial
-    T     = 3					    #   [s] sim/exp term
+    T     = 2.5					    #   [s] sim/exp term
     n     = int(T/dt)				    #   num trials
     guess = np.array([0.0,0.0,0.0,0.0])		    #   [FL, FR, RL, RR]
     path  = ctrl.loadPath_debug()		    #   get path
     #path  = ctrl.loadPath_VAIL()		    #   get path
+    saveErrors()
 
     start_time = time.time()		            # init save file using
     ordered = [ 'mis1'  , 'mis2'  , 'mis3'  , 'mis4'  ,
@@ -100,6 +115,12 @@ if __name__ == '__main__':			    #### main function ####
 		   'r'  : 0           }		    # initialize state dict()
         NLsim   = sim.NonlinearSimulator()	    # init NL sim class
 
+	#record pre-learning performance
+	NLsim.setState(state_0)			    # Reset sim state
+	ctrl.Integrator.i = 0			    # Reset ctrl integrator
+	for j in range(1,n+1):                          # n validation iterations
+            guess = simLoop(guess,j,'pre')          # sim loop : validation mode
+	
                                                     ## Learning Trials ##
         NLsim.setState(state_0)			    # init NL sim state
         for i in range(1,n+1):                      # n learning iterations
@@ -110,5 +131,19 @@ if __name__ == '__main__':			    #### main function ####
 	ctrl.Integrator.i = 0			    # Reset ctrl integrator
 	for j in range(1,n+1):                          # n validation iterations
             guess = simLoop(guess,j,'val')          # sim loop : validation mode
+
+	misalignError = sum(abs(misalign - guess))/sum(abs(misalign))
+	ave_ve_learn  = saveErrors.cum_ve_learn/n
+	ave_ee_learn  = saveErrors.cum_ee_learn/n
+	ave_ve_val    = saveErrors.cum_ve_val/n
+	ave_ee_val    = saveErrors.cum_ve_val/n
+	
+
+	print "Final Result:\n",misalignError,"% misalignment error"
+	print ave_ve_learn,"m/s ave speed error during learning"
+	print ave_ee_learn,"m ave lateral error during learning"
+	print ave_ve_val,"m/s ave speed error during validation"
+	print ave_ee_val,"m ave lateral error during validation"
 	    
         plotter.plot()                              # plot simulation result
+
