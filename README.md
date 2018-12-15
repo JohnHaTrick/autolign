@@ -7,10 +7,6 @@
 - Jorge Cordero, icoen@stanford.edu
 
 ## getting started
-- Installations and dependencies
-- Building / compiling
-- Running the code
-
-## files and folders
-- AutolignMatlab, 4WS model on Matlab
- 
+- The code runs using the Ubuntu terminal command /scripts/autolign.py
+- Specify simulation or experiment using a command line tag
+- Specift learning algorithm by commenting in/out appropriate lines 

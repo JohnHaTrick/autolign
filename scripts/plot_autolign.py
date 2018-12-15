@@ -35,9 +35,6 @@ class Plotter:
         else:   
             self.misalign = np.array(state['misalign'])            
 
-
-
-
     def plot(self):
         plt.subplot(611)
         plt.plot(self.E,self.N)

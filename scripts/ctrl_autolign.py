@@ -22,13 +22,13 @@ def lookAheadCtrl(path,state):
     del_FFW =  4*path['k'] - 0 + 0		# [rad]   FFW (not implemented)
     del_f   =  del_FFW + del_FB
 
-    del_f  += .2*np.sin(40*time.clock())
+    #del_f  += .2*np.sin(40*time.clock())
 
     if del_f > del_max:	   del_f = del_max      # assert maximum steering angle
     elif del_f < -del_max: del_f = -del_max
     del_r   =  0
     delta   =  ackermann( del_f, del_r )        # Ackerman correction needed?
-    return delta		                # [FL, FR, RL, RR]
+    return  delta		                # [FL, FR, RL, RR]
 
 def PI_Ctrl(path,state):
     v_error = path['v'] - state['Ux']		# [m/s]   v error (if Ux >> Uy)

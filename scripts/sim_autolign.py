@@ -387,3 +387,7 @@ class LinearSimulator:
                                 state['r']                        ])
         return local_state
 
+def steeringCurrent(delta_4ws):
+    k = .1                             # constant of proportion
+    return k * np.array(delta_4ws)
+
